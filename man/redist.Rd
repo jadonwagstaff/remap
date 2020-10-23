@@ -4,32 +4,19 @@
 \alias{redist}
 \title{Get distances between data and regions.}
 \usage{
-redist(
-  data,
-  lon,
-  lat,
-  regions,
-  max_dist = NULL,
-  region_id = NULL,
-  progress = TRUE
-)
+redist(data, regions, region_id, max_dist, progress = TRUE)
 }
 \arguments{
-\item{data}{An sf data frame with longitude, latitude, and columns required
-for modeling.}
-
-\item{lon}{Name of longitude column (no quotes).}
-
-\item{lat}{Name of latitude column (no quotes).}
+\item{data}{An sf data frame with point geometry.}
 
 \item{regions}{An sf dataframe with polygon geometry.}
-
-\item{max_dist}{a maximum distance that is needed for future calculations.
-(Set equal to maximum 'smooth' when predicting on new observations.)}
 
 \item{region_id}{Optional name of column in 'regions' that contains the id
 that each region belongs to (no quotes). If null, it will be assumed that
 each polygon is its own region (no regions have more than one polygon).}
+
+\item{max_dist}{a maximum distance that is needed for future calculations.
+(Set equal to maximum 'smooth' when predicting on new observations.)}
 
 \item{progress}{If true, a text progress bar is printed to the console.}
 }

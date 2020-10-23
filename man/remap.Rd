@@ -6,8 +6,6 @@
 \usage{
 remap(
   data,
-  lon,
-  lat,
   model_function,
   buffer,
   min_n = 0,
@@ -20,12 +18,7 @@ remap(
 )
 }
 \arguments{
-\item{data}{An sf data frame with longitude, latitude, and columns required
-for modeling.}
-
-\item{lon}{Name of longitude column (no quotes).}
-
-\item{lat}{Name of latitude column (no quotes).}
+\item{data}{An sf data frame with point geometry.}
 
 \item{model_function}{A function that can take a subset of 'data' and
 output a model that can be used to predict new values when passed to generic

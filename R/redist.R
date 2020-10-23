@@ -4,10 +4,7 @@
 #' and regions provided as sf dataframe with polygon geometry.
 #'
 #'
-#' @param data An sf data frame with longitude, latitude, and columns required
-#' for modeling.
-#' @param lon Name of longitude column (no quotes).
-#' @param lat Name of latitude column (no quotes).
+#' @param data An sf data frame with point geometry.
 #' @param regions An sf dataframe with polygon geometry.
 #' @param max_dist a maximum distance that is needed for future calculations.
 #' (Set equal to maximum 'smooth' when predicting on new observations.)
@@ -26,41 +23,30 @@
 #'
 #'
 #' @export
-redist <- function(data, lon, lat, regions, max_dist = NULL,
-                   region_id = NULL, progress = TRUE) {
+redist <- function(data, regions, region_id, max_dist, progress = TRUE) {
 
   # Check input
   # ============================================================================
-  if (!"data.frame" %in% class(data)) stop("data must be class 'data.frame'")
-  if (!"sf" %in% class(regions)) stop("regions must be class 'sf'")
-
-  if (!tryCatch(is.character(lon), error = function(e) FALSE)) {
-    lon <- deparse(substitute(lon))
+  if (!"sf" %in% class(data)) stop("data must be class 'sf'.")
+  if (!"sf" %in% class(regions)) stop("regions must be class 'sf'.")
+  if (sf::st_crs(data) != sf::st_crs(regions)) {
+    stop("data and regions must have the same CRS.",
+         "See sf::st_transform() for help.")
   }
-  if (!tryCatch(is.character(lat), error = function(e) FALSE)) {
-    lat <- deparse(substitute(lat))
-  }
-
-  sf_data <- sf::st_as_sf(data,
-                          coords = c(lon, lat),
-                          crs = sf::st_crs(regions))
 
   # Create list of regions to check (if region_id is NULL, then each polygon
   #   is a separate region)
-  if (missing(region_id)) {
-    id_list <- 1:nrow(regions)
-  } else {
-    if (!tryCatch(is.character(region_id), error = function(e) FALSE)) {
-      region_id <- deparse(substitute(region_id))
-    }
-
-    id_list <- sort(unique(as.character(regions[[region_id]])))
+  if (!missing(region_id) &&
+      !tryCatch(is.character(region_id), error = function(e) FALSE)) {
+    region_id <- deparse(substitute(region_id))
   }
+  regions <- process_regions(regions, region_id)
+  region_id <- names(regions)[[1]]
+  id_list <- sort(unique(as.character(regions[[region_id]])))
 
   # Find distances between the data and each region
   # ============================================================================
-
-  if (is.null(max_dist)) {
+  if (missing(max_dist)) {
     # initialize distance matrix
     distances <- matrix(as.numeric(NA),
                         nrow = nrow(data),
@@ -75,7 +61,7 @@ redist <- function(data, lon, lat, regions, max_dist = NULL,
 
     for (id in id_list) {
       distances[, id] <- apply(
-        sf::st_distance(sf_data, regions[regions[[region_id]] %in% id, ]),
+        sf::st_distance(data, regions[regions[[region_id]] %in% id, ]),
         1,
         min
       )
@@ -95,7 +81,7 @@ redist <- function(data, lon, lat, regions, max_dist = NULL,
     ))
 
     close <- apply(
-      suppressMessages(sf::st_within(sf_data, regions_buffer, sparse = FALSE)),
+      suppressMessages(sf::st_within(data, regions_buffer, sparse = FALSE)),
       2, which
     )
 
@@ -118,7 +104,7 @@ redist <- function(data, lon, lat, regions, max_dist = NULL,
       # find distances if it is within buffer
       if (length(id_close) > 0) {
         distances[id_close, id] <- apply(
-          sf::st_distance(sf_data[id_close, ], regions[id_indices, ]),
+          sf::st_distance(data[id_close, ], regions[id_indices, ]),
           1,
           min
         )
@@ -136,7 +122,7 @@ redist <- function(data, lon, lat, regions, max_dist = NULL,
     if (sum(not_close) > 0) {
       for (id in id_list) {
         distances[not_close, id] <- apply(
-          sf::st_distance(sf_data[not_close, ], regions[regions[[region_id]] %in% id, ]),
+          sf::st_distance(data[not_close, ], regions[regions[[region_id]] %in% id, ]),
           1,
           min
         )
@@ -148,3 +134,11 @@ redist <- function(data, lon, lat, regions, max_dist = NULL,
 
   return(distances / 1000)
 }
+
+
+
+
+
+
+
+
