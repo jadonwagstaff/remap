@@ -88,13 +88,19 @@ remap <- function(data, model_function, buffer, min_n = 0,
 
   # Check buffer
   # ===========================================================================
-  if(length(buffer) == 1) {
+  if (missing(buffer) || any(is.na(buffer)) ||
+      !is.numeric(buffer) || any(buffer < 0)) {
+    stop("'buffer' must be a number >= 0.")
+  }
+  if (length(buffer) == 1) {
     buffer <- rep(buffer, length(id_list))
     names(buffer) <- id_list
   } else if (!all(names(buffer) %in% id_list)) {
     stop("'buffer' values must have names equal to unique values",
          "in the 'region_id' column of 'regions'.")
   }
+  buffer <- buffer[id_list]
+  units(buffer) <- with(units::ud_units, km)
 
   # Reduce areas to places that have values present
   # ===========================================================================
@@ -202,7 +208,10 @@ predict.remap <- function(object, data, smooth, distances = NULL,
 
   # Check smooth
   # ===========================================================================
-  if(length(smooth) == 1) {
+  if (missing(smooth) || any(is.na(smooth)) ||
+      !is.numeric(smooth) || any(smooth <= 0)) {
+    stop("'smooth' must be a number > 0.")
+  } else if(length(smooth) == 1) {
     smooth <- rep(smooth, length(id_list))
     names(smooth) <- id_list
   } else if (!all(names(smooth) %in% id_list)) {
@@ -210,6 +219,7 @@ predict.remap <- function(object, data, smooth, distances = NULL,
          "in the 'object$region_id' column of 'object$regions'.")
   }
   smooth <- smooth[id_list]
+  units(smooth) <- with(units::ud_units, km)
 
   # Find distances between the data and each region
   # ============================================================================
@@ -224,7 +234,7 @@ predict.remap <- function(object, data, smooth, distances = NULL,
 
   # make sure all values have a distance within 'smooth' of a region
   distances[t(apply(distances, 1, function(x) {
-    x >= smooth & x == min(x, na.rm = TRUE) & !is.na(x)
+    x >= as.numeric(smooth) & x == min(x, na.rm = TRUE) & !is.na(x)
   }))] <- 0
 
   # Make predictions and smooth to final output
@@ -281,7 +291,9 @@ predict.remap <- function(object, data, smooth, distances = NULL,
     }
 
     # update weights
-    weight <- ((smooth[[id]] - distances[indices, id]) / smooth[[id]])^2
+    weight <- as.numeric(
+      ((smooth[[id]] - distances[indices, id]) / smooth[[id]])^2
+    )
     weightsum[indices] <- weightsum[indices] + weight
 
     # update output (k > 1)

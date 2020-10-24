@@ -33,6 +33,10 @@ redist <- function(data, regions, region_id, max_dist, progress = TRUE) {
     stop("data and regions must have the same CRS.",
          "See sf::st_transform() for help.")
   }
+  if (!missing(max_dist)) {
+    if (!is.numeric(max_dist)) stop("max_dist must be numeric")
+    units(max_dist) <- with(units::ud_units, km)
+  }
 
   # Create list of regions to check (if region_id is NULL, then each polygon
   #   is a separate region)
@@ -41,102 +45,93 @@ redist <- function(data, regions, region_id, max_dist, progress = TRUE) {
     region_id <- deparse(substitute(region_id))
   }
   regions <- process_regions(regions, region_id)
-  region_id <- names(regions)[[1]]
-  id_list <- sort(unique(as.character(regions[[region_id]])))
 
   # Find distances between the data and each region
   # ============================================================================
   if (missing(max_dist)) {
-    # initialize distance matrix
-    distances <- matrix(as.numeric(NA),
-                        nrow = nrow(data),
-                        ncol = length(id_list),
-                        dimnames = list(NULL, id_list))
-
-    # add progress bar
-    if (progress) {
-      pb <- utils::txtProgressBar(min = 0, max = length(id_list), style = 3)
-      i <- 1
-    }
-
-    for (id in id_list) {
-      distances[, id] <- apply(
-        sf::st_distance(data, regions[regions[[region_id]] %in% id, ]),
-        1,
-        min
-      )
-
-      # update progress bar
-      if (progress) {
-        utils::setTxtProgressBar(pb, i)
-        i <- i + 1
-      }
-    }
+    distances <- distance_wrapper(data, regions, progress)
   } else {
-    if (progress) cat("Using buffer to find nearest values...")
+    if (progress) cat("Using bounding boxes to find nearest values...\n")
 
-    # find points within close to regions
-    regions_buffer <- suppressMessages(suppressWarnings(
-      sf::st_buffer(regions, max_dist / 65)
-    ))
-
-    close <- apply(
-      suppressMessages(sf::st_within(data, regions_buffer, sparse = FALSE)),
-      2, which
+    # find bounding boxes
+    bboxes <- sapply(
+      sf::st_geometry(regions),
+      function(x) sf::st_as_sfc(sf::st_bbox(x))
     )
+    bboxes <- sf::st_as_sfc(bboxes,  crs = sf::st_crs(regions))
+
+    # use distance to bounding box to decide whether to find distance to regions
+    bbox_index <- distance_wrapper(data, regions, progress) <= max_dist
+
+    # for any point not within max_dist of any bounding box, find all distances
+    bbox_index[!apply(bbox_index, 1, any),] <- TRUE
 
     # initialize distance matrix
     distances <- matrix(as.numeric(NA),
-                        nrow = nrow(data),
-                        ncol = length(id_list),
-                        dimnames = list(NULL, id_list))
+                        nrow = nrow(bbox_index),
+                        ncol = ncol(bbox_index))
+    units(distances) <- with(units::ud_units, km)
 
     # add progress bar
     if (progress) {
-      pb <- utils::txtProgressBar(min = 0, max = length(id_list), style = 3)
-      i <- 1
+      cat("\nFinding distances within max_dist of bounding boxes...\n")
+      pb <- utils::txtProgressBar(min = 0, max = ncol(bbox_index), style = 3)
     }
 
-    for (id in id_list) {
-      id_indices <- regions[[region_id]] %in% id
-      id_close <- unique(unlist(close[id_indices]))
-
-      # find distances if it is within buffer
-      if (length(id_close) > 0) {
-        distances[id_close, id] <- apply(
-          sf::st_distance(data[id_close, ], regions[id_indices, ]),
-          1,
-          min
-        )
+    # find distances if it is within the max_dist of the bbox
+    for (i in 1:ncol(bbox_index)) {
+      if (any(bbox_index[, i])) {
+        distances[bbox_index[, i], i] <- distance_wrapper(data[bbox_index[, i], ],
+                                                          regions[i, ],
+                                                          FALSE)
       }
 
-      if (progress) {
-        utils::setTxtProgressBar(pb, i)
-        i <- i + 1
-      }
-    }
-
-    # add distances for points that are not close to any region
-    rm(close)
-    not_close <- apply(distances, 1, function(x) all(is.na(x)))
-    if (sum(not_close) > 0) {
-      for (id in id_list) {
-        distances[not_close, id] <- apply(
-          sf::st_distance(data[not_close, ], regions[regions[[region_id]] %in% id, ]),
-          1,
-          min
-        )
-      }
+      if (progress) utils::setTxtProgressBar(pb, i)
     }
   }
 
+  colnames(distances) <- regions[[1]]
+
   if (progress) cat("\n")
 
-  return(distances / 1000)
+  return(distances)
 }
 
 
+distance_wrapper <- function(points, polygons, progress) {
 
+  polygons <- sf::st_geometry(polygons)
+
+  if (!progress) {
+    # simply find distances if there is no progress bar
+    d <- sf::st_distance(points, polygons)
+    units(d) <- with(units::ud_units, km)
+
+  } else {
+    # allocate distances
+    d <- matrix(as.numeric(NA),
+                nrow = nrow(points),
+                ncol = length(polygons))
+
+    # add progress bar
+    pb <- utils::txtProgressBar(min = 0, max = length(polygons), style = 3)
+
+    # compute distances by column
+    for (i in 1:length(polygons)) {
+      col <- sf::st_distance(points, polygons[i])
+      units(col) <- with(units::ud_units, km)
+      d[, i] <- col
+
+      # update progress
+      utils::setTxtProgressBar(pb, i)
+    }
+
+    # add units to entire matrix
+    units(d) <- with(units::ud_units, km)
+  }
+
+  return(d)
+}
 
 
 

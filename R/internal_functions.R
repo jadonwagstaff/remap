@@ -17,7 +17,11 @@ process_regions <- function(regions, region_id) {
   if (missing(region_id)) {
     region_id <- "region"
     id_list <- 1:nrow(regions)
+    regions[[region_id]] <- id_list
   } else {
+    if (!region_id %in% colnames(regions)) {
+      stop("'region_id' must be a column name of 'regions'")
+    }
     id_list <- unique(as.character(regions[[region_id]]))
   }
 
@@ -29,16 +33,11 @@ process_regions <- function(regions, region_id) {
     new_geom <- list()
     for (id in id_list) {
       new_geom[[id]] <- Reduce(sf::st_union,
-                               regions[regions[[region_id]] == id,]$geom)
+                               sf::st_geometry(regions[regions[[region_id]] == id,]))
     }
-    new_geom <- sf::st_sfc(new_geom)
-  } else {
-    new_geom <- regions$geom
+    regions <- sf::st_sf(geom = sf::st_sfc(new_geom), crs = sf::st_crs(regions))
+    regions[[region_id]] <- id_list
   }
-
-  # Make regions only have geometry and id columns
-  regions <- sf::st_sf(geom = new_geom, crs = sf::st_crs(regions))
-  regions[[region_id]] <- id_list
 
   return(regions[c(region_id, "geom")])
 }
