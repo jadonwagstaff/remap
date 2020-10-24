@@ -4,21 +4,22 @@
 \alias{redist}
 \title{Get distances between data and regions.}
 \usage{
-redist(data, regions, region_id, max_dist, progress = TRUE)
+redist(data, regions, region_id, max_dist, progress = FALSE)
 }
 \arguments{
 \item{data}{An sf data frame with point geometry.}
 
-\item{regions}{An sf dataframe with polygon geometry.}
+\item{regions}{An sf dataframe with polygon or multipolygon geometry.}
 
 \item{region_id}{Optional name of column in 'regions' that contains the id
 that each region belongs to (no quotes). If null, it will be assumed that
-each polygon is its own region (no regions have more than one polygon).}
+each row is its own region.}
 
 \item{max_dist}{a maximum distance that is needed for future calculations.
 (Set equal to maximum 'smooth' when predicting on new observations.)}
 
-\item{progress}{If true, a text progress bar is printed to the console.}
+\item{progress}{If true, a text progress bar is printed to the console. Progress
+set to FALSE will find distances quicker if max_dist is not specified.}
 }
 \value{
 A matrix where each row corresponds one-to-one with each row in
@@ -28,7 +29,7 @@ Values are in kilometers.
 }
 \description{
 Finds distances in km between data provided as sf dataframe with point geometry
-and regions provided as sf dataframe with polygon geometry.
+and regions provided as sf dataframe with polygon or multipolygon geometry.
 }
 \seealso{
 \code{\link{remap}} - uses redist for regional models.

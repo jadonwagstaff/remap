@@ -6,15 +6,7 @@
 If an observation is outside of all regions and smoothing distances, the
 closest region will be used to predict.}
 \usage{
-\method{predict}{remap}(
-  object,
-  data,
-  smooth,
-  distances = NULL,
-  cores = 1,
-  progress = TRUE,
-  ...
-)
+\method{predict}{remap}(object, data, smooth, distances, cores = 1, progress = FALSE, ...)
 }
 \arguments{
 \item{object}{\emph{} S3 object output from sboost.}

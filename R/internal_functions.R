@@ -1,11 +1,47 @@
+# check_input
+# ==============================================================================
+# A function for checking some inputs for all functions in remap.
+# Input:
+#   data - 'data' from remap(), redist(), or predict.remap().
+#   regions - 'regions' from remap() or redist(). Can be empty.
+#   distances - 'distances' from remap() or predict.remap(). Can be empty.
+# Output:
+#   NULL or stop message if there is an problem.
+# ==============================================================================
+check_input <- function(data, regions, distances) {
+  if (!"sf" %in% class(data)) stop("data must be class 'sf', see sf package.")
+  if (!all(sf::st_geometry_type(data) == "POINT")) {
+    stop("'data' must have point geometry.")
+  }
+
+  if (!missing(regions)) {
+    if (!"sf" %in% class(regions)) {
+      stop("regions must be class 'sf', see sf package.")
+    }
+    if (!all(sf::st_geometry_type(regions) %in% c("POLYGON", "MULTIPOLYGON"))) {
+      stop("'regions' must have polygon or multipolygon geometry.")
+    }
+
+    if (sf::st_crs(data) != sf::st_crs(regions)) {
+      stop("data and regions must have the same CRS.",
+           "See sf::st_transform() for help.")
+    }
+  }
+
+  if (!missing(distances) && nrow(data) != nrow(distances)) {
+    stop("Rows in data must be same length as row in distances.")
+  }
+}
+
+
 
 # process_regions
 # ==============================================================================
-# A function for processing 'regions' input to remap() or redist()
+# A function for processing 'regions' input to remap() or redist().
 # Input:
-#   regions - 'regions' from remap() or redist()
-#   region_id - 'region_id' column of 'regions' from remap() or redist()
-#     (can be missing)
+#   regions - 'regions' from remap() or redist().
+#   region_id - 'region_id' column of 'regions' from remap() or redist(). Can
+#     be empty.
 # Output:
 #   A replacement 'regions' object that has unique 'region_id' values in the
 #   first column and sf geometries in the second column.
@@ -41,3 +77,7 @@ process_regions <- function(regions, region_id) {
 
   return(regions[c(region_id, "geom")])
 }
+
+
+
+

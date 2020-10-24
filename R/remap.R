@@ -16,7 +16,7 @@
 #' @param min_n The minimum number of observations to use when building a model.
 #' If there are not enough observations in the region and buffer, then the
 #' closest min_n observations are used. No minimum if set to 0.
-#' @param regions An sf dataframe with polygon geometry.
+#' @param regions An sf dataframe with polygon or multipolygon geometry.
 #' @param region_id Optional name of column in 'regions' that contains the id
 #' that each region belongs to (no quotes). If null, it will be assumed that
 #' each polygon is its own region (no regions have more than one polygon).
@@ -52,33 +52,25 @@
 #'
 #' @export
 remap <- function(data, model_function, buffer, min_n = 0,
-                  regions, region_id = NULL, distances = NULL,
-                  progress = TRUE, keep_data = FALSE, ...) {
-
-
-
+                  regions, region_id, distances,
+                  progress = FALSE, keep_data = FALSE, ...) {
   # Check input
   # ============================================================================
-  if (!"sf" %in% class(data)) stop("data must be class 'sf'.")
-  if (!"sf" %in% class(regions)) stop("regions must be class 'sf'.")
-  if (sf::st_crs(data) != sf::st_crs(regions)) {
-    stop("data and regions must have the same CRS.",
-         "See sf::st_transform() for help.")
-  }
-  if (!is.null(distances) && nrow(data) != nrow(distances)) {
-    stop("Rows in data must be same length as row in distances.")
-  }
+  check_input(data, regions, distances)
 
+  # check if region_id is a character, if it is not, make it a character vector
   if (!missing(region_id) &&
       !tryCatch(is.character(region_id), error = function(e) FALSE)) {
     region_id <- deparse(substitute(region_id))
   }
+
+  # process regions so only one line makes up a region
   regions <- process_regions(regions, region_id)
   region_id <- names(regions)[[1]]
 
   # Find distances between the data and each region
   # ============================================================================
-  if (is.null(distances)) {
+  if (missing(distances)) {
     if(progress) cat("Finding distances...\n")
     distances <- redist(data, regions = regions, region_id = region_id,
                         progress = progress)
@@ -198,12 +190,11 @@ remap <- function(data, model_function, buffer, min_n = 0,
 #' @seealso \code{\link{remap}} building a regional model.
 #'
 #' @export
-predict.remap <- function(object, data, smooth, distances = NULL,
-                                   cores = 1, progress = TRUE, ...) {
-
+predict.remap <- function(object, data, smooth, distances, cores = 1,
+                          progress = FALSE, ...) {
   # Check input
   # ============================================================================
-  if (!"sf" %in% class(data)) stop("data must be class 'sf'.")
+  check_input(data, distances = distances)
   id_list <- names(object$models)
 
   # Check smooth
@@ -223,10 +214,9 @@ predict.remap <- function(object, data, smooth, distances = NULL,
 
   # Find distances between the data and each region
   # ============================================================================
-  if (is.null(distances)) {
+  if (missing(distances)) {
     if(progress) cat("Finding distances...\n")
     distances <- redist(data,
-                        max_dist = max(smooth),
                         regions = object$regions[],
                         region_id = names(object$regions)[[1]],
                         progress = progress)

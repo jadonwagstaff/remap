@@ -1,17 +1,18 @@
 #' Get distances between data and regions.
 #'
 #' Finds distances in km between data provided as sf dataframe with point geometry
-#' and regions provided as sf dataframe with polygon geometry.
+#' and regions provided as sf dataframe with polygon or multipolygon geometry.
 #'
 #'
 #' @param data An sf data frame with point geometry.
-#' @param regions An sf dataframe with polygon geometry.
-#' @param max_dist a maximum distance that is needed for future calculations.
-#' (Set equal to maximum 'smooth' when predicting on new observations.)
+#' @param regions An sf dataframe with polygon or multipolygon geometry.
 #' @param region_id Optional name of column in 'regions' that contains the id
 #' that each region belongs to (no quotes). If null, it will be assumed that
-#' each polygon is its own region (no regions have more than one polygon).
-#' @param progress If true, a text progress bar is printed to the console.
+#' each row is its own region.
+#' @param max_dist a maximum distance that is needed for future calculations.
+#' (Set equal to maximum 'smooth' when predicting on new observations.)
+#' @param progress If true, a text progress bar is printed to the console. Progress
+#' set to FALSE will find distances quicker if max_dist is not specified.
 #'
 #' @return A matrix where each row corresponds one-to-one with each row in
 #' provided 'data'. Matrix columns are either named with regions from 'region_id'
@@ -23,28 +24,26 @@
 #'
 #'
 #' @export
-redist <- function(data, regions, region_id, max_dist, progress = TRUE) {
-
+redist <- function(data, regions, region_id, max_dist, progress = FALSE) {
   # Check input
   # ============================================================================
-  if (!"sf" %in% class(data)) stop("data must be class 'sf'.")
-  if (!"sf" %in% class(regions)) stop("regions must be class 'sf'.")
-  if (sf::st_crs(data) != sf::st_crs(regions)) {
-    stop("data and regions must have the same CRS.",
-         "See sf::st_transform() for help.")
-  }
+  check_input(data, regions)
+
   if (!missing(max_dist)) {
     if (!is.numeric(max_dist)) stop("max_dist must be numeric")
     units(max_dist) <- with(units::ud_units, km)
   }
 
-  # Create list of regions to check (if region_id is NULL, then each polygon
-  #   is a separate region)
+
+  # check if region_id is a character, if it is not, make it a character vector
   if (!missing(region_id) &&
       !tryCatch(is.character(region_id), error = function(e) FALSE)) {
     region_id <- deparse(substitute(region_id))
   }
+
+  # process regions so only one line makes up a region
   regions <- process_regions(regions, region_id)
+
 
   # Find distances between the data and each region
   # ============================================================================
@@ -98,6 +97,19 @@ redist <- function(data, regions, region_id, max_dist, progress = TRUE) {
 }
 
 
+
+
+# distance_wrapper
+# ==============================================================================
+# A function that finds the distance in km between points and polygons
+# Input:
+#   points - an sf object containing points.
+#   polygons - an sf or sfc object containing polygons or multipolygons
+#   progress - whether to show a progress bar
+# Output:
+#   A matrix of distances in km where the ith column is the distance between
+#   the points and the ith polygon.
+# ==============================================================================
 distance_wrapper <- function(points, polygons, progress) {
 
   polygons <- sf::st_geometry(polygons)
@@ -105,7 +117,14 @@ distance_wrapper <- function(points, polygons, progress) {
   if (!progress) {
     # simply find distances if there is no progress bar
     d <- sf::st_distance(points, polygons)
-    units(d) <- with(units::ud_units, km)
+    units(d) <- tryCatch({
+      with(units::ud_units, km)
+    },
+    error = function(e) {
+      stop("Distances returned by sf::st_distance is not a unit convertible",
+           "to kilometers. Try transforming 'data' and 'regions' object",
+           "using sf::st_transform.")
+    })
 
   } else {
     # allocate distances
@@ -119,7 +138,14 @@ distance_wrapper <- function(points, polygons, progress) {
     # compute distances by column
     for (i in 1:length(polygons)) {
       col <- sf::st_distance(points, polygons[i])
-      units(col) <- with(units::ud_units, km)
+      units(col) <- tryCatch({
+        with(units::ud_units, km)
+      },
+      error = function(e) {
+        stop("Distances returned by sf::st_distance is not a unit convertible",
+             "to kilometers. Try transforming 'data' and 'regions' object",
+             "using sf::st_transform.")
+      })
       d[, i] <- col
 
       # update progress

@@ -10,9 +10,9 @@ remap(
   buffer,
   min_n = 0,
   regions,
-  region_id = NULL,
-  distances = NULL,
-  progress = TRUE,
+  region_id,
+  distances,
+  progress = FALSE,
   keep_data = FALSE,
   ...
 )
@@ -32,7 +32,7 @@ with different values for each unique 'region_id' in 'region'.)}
 If there are not enough observations in the region and buffer, then the
 closest min_n observations are used. No minimum if set to 0.}
 
-\item{regions}{An sf dataframe with polygon geometry.}
+\item{regions}{An sf dataframe with polygon or multipolygon geometry.}
 
 \item{region_id}{Optional name of column in 'regions' that contains the id
 that each region belongs to (no quotes). If null, it will be assumed that
