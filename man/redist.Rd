@@ -4,7 +4,7 @@
 \alias{redist}
 \title{Get distances between data and regions.}
 \usage{
-redist(data, regions, region_id, max_dist, progress = FALSE)
+redist(data, regions, region_id, max_dist, cores = 1, progress = FALSE)
 }
 \arguments{
 \item{data}{An sf data frame with point geometry.}
@@ -17,6 +17,9 @@ each row is its own region.}
 
 \item{max_dist}{a maximum distance that is needed for future calculations.
 (Set equal to maximum 'smooth' when predicting on new observations.)}
+
+\item{cores}{Number of cores for parallel computing. 'cores' above
+default of 1 will require more memory.}
 
 \item{progress}{If true, a text progress bar is printed to the console. Progress
 set to FALSE will find distances quicker if max_dist is not specified.}

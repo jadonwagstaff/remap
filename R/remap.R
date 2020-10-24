@@ -58,7 +58,7 @@ remap <- function(data, model_function, buffer, min_n = 0,
   # ============================================================================
   check_input(data, regions, distances)
 
-  # check if region_id is a character, if it is not, make it a character vector
+  # check if region_id is a character, if it is not, make it a character
   if (!missing(region_id) &&
       !tryCatch(is.character(region_id), error = function(e) FALSE)) {
     region_id <- deparse(substitute(region_id))
@@ -215,10 +215,10 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
   # Find distances between the data and each region
   # ============================================================================
   if (missing(distances)) {
-    if(progress) cat("Finding distances...\n")
     distances <- redist(data,
                         regions = object$regions[],
                         region_id = names(object$regions)[[1]],
+                        cores = cores,
                         progress = progress)
   }
 
@@ -234,7 +234,7 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
 
   # add progress bar
   if (progress) {
-    cat("\nPredicting...\n")
+    cat("Predicting...\n")
     pb <- utils::txtProgressBar(min = 0, max = length(id_list), style = 3)
     i <- 1
   }

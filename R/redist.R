@@ -11,6 +11,8 @@
 #' each row is its own region.
 #' @param max_dist a maximum distance that is needed for future calculations.
 #' (Set equal to maximum 'smooth' when predicting on new observations.)
+#' @param cores Number of cores for parallel computing. 'cores' above
+#' default of 1 will require more memory.
 #' @param progress If true, a text progress bar is printed to the console. Progress
 #' set to FALSE will find distances quicker if max_dist is not specified.
 #'
@@ -24,7 +26,8 @@
 #'
 #'
 #' @export
-redist <- function(data, regions, region_id, max_dist, progress = FALSE) {
+redist <- function(data, regions, region_id, max_dist, cores = 1,
+                   progress = FALSE) {
   # Check input
   # ============================================================================
   check_input(data, regions)
@@ -35,7 +38,7 @@ redist <- function(data, regions, region_id, max_dist, progress = FALSE) {
   }
 
 
-  # check if region_id is a character, if it is not, make it a character vector
+  # check if region_id is a character, if it is not, make it a character
   if (!missing(region_id) &&
       !tryCatch(is.character(region_id), error = function(e) FALSE)) {
     region_id <- deparse(substitute(region_id))
@@ -44,11 +47,19 @@ redist <- function(data, regions, region_id, max_dist, progress = FALSE) {
   # process regions so only one line makes up a region
   regions <- process_regions(regions, region_id)
 
+  # decide which helper distance function to use
+  dist_fun <- ifelse(cores > 1, multi_core_dist, single_core_dist)
+
 
   # Find distances between the data and each region
   # ============================================================================
   if (missing(max_dist)) {
-    distances <- distance_wrapper(data, regions, progress)
+    if (progress) cat("Finding regional distances...\n")
+
+    distances <- dist_fun(points = data,
+                          polygons = regions,
+                          cores = cores,
+                          progress = progress)
   } else {
     if (progress) cat("Using bounding boxes to find nearest values...\n")
 
@@ -60,72 +71,56 @@ redist <- function(data, regions, region_id, max_dist, progress = FALSE) {
     bboxes <- sf::st_as_sfc(bboxes,  crs = sf::st_crs(regions))
 
     # use distance to bounding box to decide whether to find distance to regions
-    bbox_index <- distance_wrapper(data, regions, progress) <= max_dist
+    bbox_index <- dist_fun(points = data,
+                           polygons = regions,
+                           cores = cores,
+                           progress = progress) <= max_dist
 
     # for any point not within max_dist of any bounding box, find all distances
     bbox_index[!apply(bbox_index, 1, any),] <- TRUE
 
-    # initialize distance matrix
-    distances <- matrix(as.numeric(NA),
-                        nrow = nrow(bbox_index),
-                        ncol = ncol(bbox_index))
-    units(distances) <- with(units::ud_units, km)
 
-    # add progress bar
-    if (progress) {
-      cat("\nFinding distances within max_dist of bounding boxes...\n")
-      pb <- utils::txtProgressBar(min = 0, max = ncol(bbox_index), style = 3)
-    }
+    if (progress) cat("Finding regional distances...\n")
 
-    # find distances if it is within the max_dist of the bbox
-    for (i in 1:ncol(bbox_index)) {
-      if (any(bbox_index[, i])) {
-        distances[bbox_index[, i], i] <- distance_wrapper(data[bbox_index[, i], ],
-                                                          regions[i, ],
-                                                          FALSE)
-      }
-
-      if (progress) utils::setTxtProgressBar(pb, i)
-    }
+    distances <- dist_fun(points = data,
+                          polygons = regions,
+                          index = bbox_index,
+                          cores = cores,
+                          progress = progress)
   }
 
+  # Add names of regions to distances
   colnames(distances) <- regions[[1]]
-
-  if (progress) cat("\n")
 
   return(distances)
 }
 
 
-
-
-# distance_wrapper
+# single_core_dist
 # ==============================================================================
-# A function that finds the distance in km between points and polygons
+# A function that finds the distance in km between points and polygons.
 # Input:
 #   points - an sf object containing points.
-#   polygons - an sf or sfc object containing polygons or multipolygons
-#   progress - whether to show a progress bar
+#   polygons - an sf or sfc object containing polygons or multipolygons.
+#   index - an optional matrix of logicals corresponding to which distances
+#     need to be found for each point and polygon.
+#   progress - whether to show a progress bar.
 # Output:
 #   A matrix of distances in km where the ith column is the distance between
 #   the points and the ith polygon.
 # ==============================================================================
-distance_wrapper <- function(points, polygons, progress) {
+single_core_dist <- function(points, polygons, index, progress, ...) {
 
   polygons <- sf::st_geometry(polygons)
 
-  if (!progress) {
-    # simply find distances if there is no progress bar
-    d <- sf::st_distance(points, polygons)
-    units(d) <- tryCatch({
-      with(units::ud_units, km)
-    },
-    error = function(e) {
-      stop("Distances returned by sf::st_distance is not a unit convertible",
-           "to kilometers. Try transforming 'data' and 'regions' object",
-           "using sf::st_transform.")
-    })
+  # Procedure with no progress and no index matrix
+  # ============================================================================
+  if (!progress && missing(index)) {
+    # simply find distances if there is no progress bar or index matrix
+    d <- distance_wrapper(points, polygons)
 
+  # Procedure when called with index matrix or progress updates
+  # ============================================================================
   } else {
     # allocate distances
     d <- matrix(as.numeric(NA),
@@ -133,33 +128,122 @@ distance_wrapper <- function(points, polygons, progress) {
                 ncol = length(polygons))
 
     # add progress bar
-    pb <- utils::txtProgressBar(min = 0, max = length(polygons), style = 3)
+    if (progress) {
+      pb <- utils::txtProgressBar(min = 0, max = length(polygons), style = 3)
+    }
 
     # compute distances by column
     for (i in 1:length(polygons)) {
-      col <- sf::st_distance(points, polygons[i])
-      units(col) <- tryCatch({
-        with(units::ud_units, km)
-      },
-      error = function(e) {
-        stop("Distances returned by sf::st_distance is not a unit convertible",
-             "to kilometers. Try transforming 'data' and 'regions' object",
-             "using sf::st_transform.")
-      })
-      d[, i] <- col
+
+      # add to distance matrix
+      if (missing(index)) {
+        d[, i] <- distance_wrapper(points, polygons[i])
+      } else {
+        d[index[, i], i] <- distance_wrapper(points[index[, i], ], polygons[i])
+      }
 
       # update progress
-      utils::setTxtProgressBar(pb, i)
+      if (progress) utils::setTxtProgressBar(pb, i)
     }
 
     # add units to entire matrix
     units(d) <- with(units::ud_units, km)
   }
 
+  if (progress) cat("\n")
+
   return(d)
 }
 
 
 
+# multi_core_dist
+# ==============================================================================
+# A function that finds the distance in km between points and polygons.
+# Input:
+#   points - an sf object containing points.
+#   polygons - an sf or sfc object containing polygons or multipolygons.
+#   index - an optional matrix of logicals corresponding to which distances
+#     need to be found for each point and polygon.
+#   cores - number of cores for parallel computing.
+# Output:
+#   A matrix of distances in km where the ith column is the distance between
+#   the points and the ith polygon.
+# ==============================================================================
+multi_core_dist <- function(points, polygons, index, cores, ...) {
+
+  polygons <- sf::st_geometry(polygons)
+
+  # set up parallel computing
+  clusters <- parallel::makeCluster(cores)
+
+  parallel::clusterExport(cl = clusters,
+                          varlist = "distance_wrapper",
+                          envir = environment())
+
+  # Compute distances by polygon with no index
+  # ============================================================================
+  if (missing(index)) {
+    d <- parallel::parLapply(
+      cl = clusters,
+      X = as.list(1:length(polygons)),
+      fun = function(x, points, polygons) distance_wrapper(points, polygons[x]),
+      points = points,
+      polygons = polygons
+    )
+  # Compute distances by polygon with index
+  # ============================================================================
+  } else {
+    d <- parallel::parLapply(
+      cl = clusters,
+      X = 1:length(polygons),
+      fun = function(x, polygons, points, index) {
+        col <- rep(as.numeric(NA), nrow(points))
+        col[index[, x]] <- distance_wrapper(points[index[, x], ], polygons[x])
+        return(col)
+      },
+      points = points,
+      index = index,
+      polygons = polygons
+    )
+  }
+
+  # stop parallel process and turn distances into matrix
+  parallel::stopCluster(clusters)
+
+  d <- matrix(unlist(d), ncol = length(polygons))
+  units(d) <- with(units::ud_units, km)
+
+  return(d)
+}
+
+
+
+# distance_wrapper
+# ==============================================================================
+# A function that finds the distance in km between points and polygons.
+# Input:
+#   points - an sf object containing points.
+#   polygons - an sf or sfc object containing polygons or multipolygons.
+# Output:
+#   A matrix of distances in km where the ith column is the distance between
+#   the points and the ith polygon.
+# ==============================================================================
+distance_wrapper <- function(points, polygons) {
+  # find distances
+  d <- sf::st_distance(points, polygons)
+
+  # convert to km
+  units(d) <- tryCatch({
+    with(units::ud_units, km)
+  },
+  error = function(e) {
+    stop("Distances returned by sf::st_distance is not a unit convertible",
+         "to kilometers. Try transforming 'data' and 'regions' object",
+         "using sf::st_transform.")
+  })
+
+  return(d)
+}
 
 
