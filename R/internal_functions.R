@@ -8,10 +8,14 @@
 # Output:
 #   NULL or stop message if there is an problem.
 # ==============================================================================
-check_input <- function(data, regions, distances) {
+check_input <- function(data, cores, regions, distances) {
   if (!"sf" %in% class(data)) stop("data must be class 'sf', see sf package.")
   if (!all(sf::st_geometry_type(data) == "POINT")) {
     stop("'data' must have point geometry.")
+  }
+
+  if (cores < 1) {
+    stop("'cores' must be a number greater than 0.")
   }
 
   if (!missing(regions)) {
@@ -76,6 +80,40 @@ process_regions <- function(regions, region_id) {
   }
 
   return(regions[c(region_id, "geom")])
+}
+
+
+
+# process_numbers
+# ==============================================================================
+# A function for processing 'smooth' or 'buffer' or input to remap().
+# Input:
+#   x - 'smooth' or 'buffer' values
+#   name - One of 'smooth' or 'buffer'
+#   region_id - 'region_id' column of 'regions' from remap().
+# Output:
+#   An object with values of x and length id_list that has id_list names.
+# ==============================================================================
+process_numbers <- function(x, name, id_list) {
+
+  if (missing(x) || any(is.na(x)) ||
+      !is.numeric(x) || any(x <= 0)) {
+    stop(name, "must be a number >= 0.")
+  }
+
+  if (length(x) == 1) {
+    x <- rep(x, length(id_list))
+    names(x) <- id_list
+  } else if (all(id_list == 1:length(x))) {
+    names(x) <- id_list
+  } else if (!all(names(x) %in% id_list)) {
+    stop(name, "values must have names equal to unique values",
+         "in the 'region_id' column of 'regions'.")
+  }
+
+  x <- x[id_list]
+  units(x) <- with(units::ud_units, km)
+  return(x)
 }
 
 

@@ -1,7 +1,7 @@
 Package: remap
 Type: Package
 Title: Regional Spatial Modeling for Mapping
-Version: 0.1.0.9003
+Version: 0.1.0.9004
 Authors@R: person("Jadon", "Wagstaff", email = "jadonw@gmail.com", role = c("aut", "cre"))
 Description: Creates separate models for different spatial regions. If regional models
     are smooth, the resulting prediction surface is smooth accross spatial surface, even

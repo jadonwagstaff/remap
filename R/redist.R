@@ -30,10 +30,10 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
                    progress = FALSE) {
   # Check input
   # ============================================================================
-  check_input(data, regions)
+  check_input(data = data, cores = cores, regions = regions)
 
   if (!missing(max_dist)) {
-    if (!is.numeric(max_dist)) stop("max_dist must be numeric")
+    if (max_dist <= 0) stop("max_dist must be a number > 0")
     units(max_dist) <- with(units::ud_units, km)
   }
 
@@ -187,9 +187,7 @@ multi_core_dist <- function(points, polygons, index, cores, ...) {
     d <- parallel::parLapply(
       cl = clusters,
       X = as.list(1:length(polygons)),
-      fun = function(x, points, polygons) distance_wrapper(points, polygons[x]),
-      points = points,
-      polygons = polygons
+      fun = function(x) distance_wrapper(points, polygons[x])
     )
   # Compute distances by polygon with index
   # ============================================================================
@@ -197,14 +195,11 @@ multi_core_dist <- function(points, polygons, index, cores, ...) {
     d <- parallel::parLapply(
       cl = clusters,
       X = 1:length(polygons),
-      fun = function(x, polygons, points, index) {
+      fun = function(x) {
         col <- rep(as.numeric(NA), nrow(points))
         col[index[, x]] <- distance_wrapper(points[index[, x], ], polygons[x])
         return(col)
-      },
-      points = points,
-      index = index,
-      polygons = polygons
+      }
     )
   }
 
