@@ -97,7 +97,7 @@ process_regions <- function(regions, region_id) {
 process_numbers <- function(x, name, id_list) {
 
   if (missing(x) || any(is.na(x)) ||
-      !is.numeric(x) || any(x <= 0)) {
+      !is.numeric(x) || any(as.numeric(x) <= 0)) {
     stop(name, "must be a number >= 0.")
   }
 

@@ -32,12 +32,6 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
   # ============================================================================
   check_input(data = data, cores = cores, regions = regions)
 
-  if (!missing(max_dist)) {
-    if (max_dist <= 0) stop("max_dist must be a number > 0")
-    units(max_dist) <- with(units::ud_units, km)
-  }
-
-
   # check if region_id is a character, if it is not, make it a character
   if (!missing(region_id) &&
       !tryCatch(is.character(region_id), error = function(e) FALSE)) {
@@ -46,14 +40,41 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
 
   # process regions so only one line makes up a region
   regions <- process_regions(regions, region_id)
+  id_list <- regions[[1]]
 
   # decide which helper distance function to use
   dist_fun <- ifelse(cores > 1, multi_core_dist, single_core_dist)
 
 
+  # Check max_dist
+  # ============================================================================
+  if (!missing(max_dist)) {
+    max_dist <- process_numbers(max_dist, "max_dist", id_list)
+
+    # if data is longlat, change max_dist from km to degrees
+    if (sf::st_is_longlat(data)) {
+      max_lat <- max(abs(sf::st_coordinates(data)[, "Y"]))
+      # using radius of earth at equator for WGS-84 ellipsoid (rounded up)
+      km_per_deg <- ((pi * 6380) / 180) * cos((pi * max_lat) / 180)
+      # convert km to degrees (using conservative distance at max latitude)
+      max_dist <- as.numeric(max_dist) / km_per_deg
+      names(max_dist) <- id_list
+      # set units to degrees and names
+      units(max_dist) <- with(units::ud_units, "degrees")
+      # check to make sure  the distance isn't too large
+      if (as.numeric(max(max_dist)) + max_lat > 90) {
+        warning("At least one 'data' point is too close to a pole for the",
+                "requested 'max_dist'. Reverting back to finding all",
+                "distances.")
+        max_dist <- NULL
+      }
+    }
+  }
+
+
   # Find distances between the data and each region
   # ============================================================================
-  if (missing(max_dist)) {
+  if (missing(max_dist) || is.null(max_dist)) {
     if (progress) cat("Finding regional distances...\n")
 
     distances <- dist_fun(points = data,
@@ -61,36 +82,31 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
                           cores = cores,
                           progress = progress)
   } else {
-    if (progress) cat("Using bounding boxes to find nearest values...\n")
+    if (progress) cat("Using buffer to find nearest values...\n")
 
-    # find bounding boxes
-    bboxes <- sapply(
-      sf::st_geometry(regions),
-      function(x) sf::st_as_sfc(sf::st_bbox(x))
+    # find buffer for regions based on max_dist
+    regions_buffer <- suppressWarnings(
+      sf::st_buffer(regions, max_dist)
     )
-    bboxes <- sf::st_as_sfc(bboxes,  crs = sf::st_crs(regions))
 
-    # use distance to bounding box to decide whether to find distance to regions
-    bbox_index <- dist_fun(points = data,
-                           polygons = regions,
-                           cores = cores,
-                           progress = progress) <= max_dist
-
-    # for any point not within max_dist of any bounding box, find all distances
-    bbox_index[!apply(bbox_index, 1, any),] <- TRUE
+    # use buffer to find points close enough to a region to calculate distances
+    buffer_indices <- apply(
+      suppressMessages(sf::st_within(data, regions_buffer, sparse = FALSE)),
+      2, which
+    )
 
 
     if (progress) cat("Finding regional distances...\n")
 
     distances <- dist_fun(points = data,
                           polygons = regions,
-                          index = bbox_index,
+                          index = buffer_indices,
                           cores = cores,
                           progress = progress)
   }
 
   # Add names of regions to distances
-  colnames(distances) <- regions[[1]]
+  colnames(distances) <- id_list
 
   return(distances)
 }
@@ -102,7 +118,7 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
 # Input:
 #   points - an sf object containing points.
 #   polygons - an sf or sfc object containing polygons or multipolygons.
-#   index - an optional matrix of logicals corresponding to which distances
+#   index - an optional list of indices corresponding to which distances
 #     need to be found for each point and polygon.
 #   progress - whether to show a progress bar.
 # Output:
@@ -139,7 +155,7 @@ single_core_dist <- function(points, polygons, index, progress, ...) {
       if (missing(index)) {
         d[, i] <- distance_wrapper(points, polygons[i])
       } else {
-        d[index[, i], i] <- distance_wrapper(points[index[, i], ], polygons[i])
+        d[index[[i]], i] <- distance_wrapper(points[index[[i]], ], polygons[i])
       }
 
       # update progress
@@ -163,7 +179,7 @@ single_core_dist <- function(points, polygons, index, progress, ...) {
 # Input:
 #   points - an sf object containing points.
 #   polygons - an sf or sfc object containing polygons or multipolygons.
-#   index - an optional matrix of logicals corresponding to which distances
+#   index - an optional list of indices corresponding to which distances
 #     need to be found for each point and polygon.
 #   cores - number of cores for parallel computing.
 # Output:
@@ -197,7 +213,7 @@ multi_core_dist <- function(points, polygons, index, cores, ...) {
       X = 1:length(polygons),
       fun = function(x) {
         col <- rep(as.numeric(NA), nrow(points))
-        col[index[, x]] <- distance_wrapper(points[index[, x], ], polygons[x])
+        col[index[[x]]] <- distance_wrapper(points[index[[x]], ], polygons[x])
         return(col)
       }
     )

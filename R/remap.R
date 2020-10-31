@@ -75,6 +75,7 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 0,
     distances <- redist(data,
                         regions = regions,
                         region_id = region_id,
+                        max_dist = buffer,
                         cores = cores,
                         progress = progress)
   }
@@ -206,6 +207,7 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
     distances <- redist(data,
                         regions = object$regions[],
                         region_id = names(object$regions)[[1]],
+                        max_dist = smooth,
                         cores = cores,
                         progress = progress)
   }
