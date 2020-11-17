@@ -31,7 +31,7 @@ check_input <- function(data, cores, regions, distances) {
            "See sf::st_transform() for help.")
     }
   }
-
+  # TODO: what if data has one row
   if (!missing(distances) && nrow(data) != nrow(distances)) {
     stop("Rows in data must be same length as row in distances.")
   }
@@ -79,7 +79,7 @@ process_regions <- function(regions, region_id) {
     regions[[region_id]] <- id_list
   }
 
-  return(regions[c(region_id, "geom")])
+  return(regions[region_id])
 }
 
 

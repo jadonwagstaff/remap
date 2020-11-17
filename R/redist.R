@@ -54,8 +54,8 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
     # if data is longlat, change max_dist from km to degrees
     if (sf::st_is_longlat(data)) {
       max_lat <- max(abs(sf::st_coordinates(data)[, "Y"]))
-      # using radius of earth at equator for WGS-84 ellipsoid (rounded up)
-      km_per_deg <- ((pi * 6380) / 180) * cos((pi * max_lat) / 180)
+      # using radius of earth at a pole for WGS-84 ellipsoid (rounded down)
+      km_per_deg <- ((pi * 6350) / 180) * cos((pi * max_lat) / 180)
       # convert km to degrees (using conservative distance at max latitude)
       max_dist <- as.numeric(max_dist) / km_per_deg
       names(max_dist) <- id_list
@@ -90,7 +90,8 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
     )
 
     # use buffer to find points close enough to a region to calculate distances
-    buffer_indices <- apply(
+    # used alply rather than apply since alply will always return a list
+    buffer_indices <- plyr::alply(
       suppressMessages(sf::st_within(data, regions_buffer, sparse = FALSE)),
       2, which
     )
@@ -103,6 +104,15 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
                           index = buffer_indices,
                           cores = cores,
                           progress = progress)
+
+    # find all distances in places where all regions are out of buffer
+    too_far <- apply(distances, 1, function(x) all(is.na(x)))
+
+    distances[too_far, ] <- dist_fun(points = data[too_far, ],
+                                     polygons = regions,
+                                     cores = cores,
+                                     progress = progress)
+
   }
 
   # Add names of regions to distances
