@@ -7,7 +7,7 @@
 #'
 #'
 #' @param data An sf data frame with point geometry.
-#' #' @param regions An sf dataframe with polygon or multipolygon geometry.
+#' @param regions An sf dataframe with polygon or multipolygon geometry.
 #' @param region_id Optional name of column in 'regions' that contains the id
 #' that each region belongs to (no quotes). If null, it will be assumed that
 #' each polygon is its own region (no regions have more than one polygon).
@@ -94,9 +94,16 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 0,
       indices <- order(distances[, id])[1:min_n]
     }
 
+    # correct data if running in parallel
+    if (cores > 1) {
+      newdata <- parallel_hack(data[indices, ], sf::st_crs(data))
+    } else {
+      newdata <- data[indices, ]
+    }
+
     # try building a model and warn if one fails
     tryCatch({
-      model_function(data[indices, ], ...)
+      model_function(newdata, ...)
     },
     error = function(e) {
       warning("Error in model for region ", id, ":\n", e)
@@ -116,9 +123,9 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 0,
                             envir = environment())
 
     models <- parallel::parLapply(
-      clusters,
-      as.list(id_list),
-      make_model
+      cl = clusters,
+      X = as.list(id_list),
+      fun = make_model
     )
 
     names(models) <- id_list
@@ -151,9 +158,9 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 0,
 
   # Create output
   # ============================================================================
+  if (length(models) == 0) stop("Modeling function failed in every region.")
 
   # remove regions where model failed
-  # TODO: catch when all models don't work
   models <- models[sapply(models, function(x) !is.null(x))]
   id_list <- id_list[id_list %in% names(models)]
   regions <- regions[regions[[region_id]] %in% id_list, ]
@@ -213,9 +220,8 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
                         progress = progress)
   }
 
-  # make sure all values have a distance within 'smooth' of a region
+  # make sure all values have a distance with non-zero weight
   distances[t(apply(distances, 1, function(x) {
-    # TODO: fix to check each distance column
     x >= as.numeric(smooth) & x == min(x, na.rm = TRUE) & !is.na(x)
   }))] <- 0
 
@@ -238,7 +244,10 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
         indices <- which(distances[, id] < smooth[[id]] &
                            !is.na(distances[, id]))
 
-        stats::predict(object$models[[id]], data[indices, ], ...)
+        # correct data to run in parallel
+        newdata <- parallel_hack(data[indices, ], sf::st_crs(data))
+
+        stats::predict(object$models[[id]], newdata, ...)
       }
     )
 
@@ -299,13 +308,46 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
 
 
 
+#' Print method for remap object.
+#' @export
+print.remap <- function(x, ...) {
+  cat(paste("remap model with",
+            length(x$models),
+            "regional models"))
+}
 
 
 
+#' Plot method for remap object.
+#'
+#' Plots the regions used for modeling.
+#'
+#' @export
+plot.remap <- function(x, ...) {
+  plot(x$regions)
+}
 
 
 
-
+# parallel_hack
+# ==============================================================================
+# This is a hack for a bug that only comes up occasionally when running
+# parallel code. For some reason when remap is run in parallel, the geometry
+# column of the subset data object gets stripped of its class and returns
+# to a "list" object. The workaround is to convert the geometry list to
+# an sfc object and reassign the crs.
+# Input:
+#   data_ss - subset of data points
+#   crs - the correct crs returned by sf::st_crs
+# Output:
+#   A corrected sf object
+# ==============================================================================
+parallel_hack <- function(data_ss, crs) {
+  geom_col <- attr(data_ss, "sf_column")
+  data_ss[[geom_col]] <- sf::st_sfc(data_ss[[geom_col]])
+  sf::st_crs(data_ss) <- crs
+  return(data_ss)
+}
 
 
 

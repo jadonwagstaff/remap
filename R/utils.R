@@ -112,7 +112,7 @@ process_numbers <- function(x, name, id_list) {
   }
 
   x <- x[id_list]
-  units(x) <- with(units::ud_units, km)
+  units(x) <- units::as_units("km")
   return(x)
 }
 

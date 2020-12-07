@@ -60,7 +60,7 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
       max_dist <- as.numeric(max_dist) / km_per_deg
       names(max_dist) <- id_list
       # set units to degrees and names
-      units(max_dist) <- with(units::ud_units, "degrees")
+      units(max_dist) <- units::as_units("degrees")
       # check to make sure  the distance isn't too large
       if (as.numeric(max(max_dist)) + max_lat > 90) {
         warning("At least one 'data' point is too close to a pole for the",
@@ -173,7 +173,7 @@ single_core_dist <- function(points, polygons, index, progress, ...) {
     }
 
     # add units to entire matrix
-    units(d) <- with(units::ud_units, km)
+    units(d) <- units::as_units("km")
   }
 
   if (progress) cat("\n")
@@ -233,7 +233,7 @@ multi_core_dist <- function(points, polygons, index, cores, ...) {
   parallel::stopCluster(clusters)
 
   d <- matrix(unlist(d), ncol = length(polygons))
-  units(d) <- with(units::ud_units, km)
+  units(d) <- units::as_units("km")
 
   return(d)
 }
@@ -256,10 +256,11 @@ distance_wrapper <- function(points, polygons) {
 
   # convert to km
   units(d) <- tryCatch({
-    with(units::ud_units, km)
+    units::as_units("km")
   },
   error = function(e) {
-    stop("Distances returned by sf::st_distance is not a unit convertible",
+    stop(e,
+         "Distances returned by sf::st_distance is not a unit convertible",
          "to kilometers. Try transforming 'data' and 'regions' object",
          "using sf::st_transform.")
   })

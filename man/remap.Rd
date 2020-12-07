@@ -18,8 +18,9 @@ remap(
 )
 }
 \arguments{
-\item{data}{An sf data frame with point geometry.
-#' @param regions An sf dataframe with polygon or multipolygon geometry.}
+\item{data}{An sf data frame with point geometry.}
+
+\item{regions}{An sf dataframe with polygon or multipolygon geometry.}
 
 \item{region_id}{Optional name of column in 'regions' that contains the id
 that each region belongs to (no quotes). If null, it will be assumed that
