@@ -1,7 +1,7 @@
 ---
 title: "Introduction to remap"
 author: "Jadon Wagstaff"
-date: "12/4/2020"
+date: "12/8/2020"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction to remap}
@@ -136,7 +136,7 @@ $~$
 
 $~$
 
-# Distance Calculation Speedup
+# Computational Speedup
 
 Building models and predicting with remap runs fairly slowly for something as simple as linear models. This is because remap is calculating the distances between each observation and each region for both the modeling and the prediction steps. 
 
@@ -196,6 +196,10 @@ lm_huc2_mse
 ```
 
 The MSE for this model is slightly different than previous regional linear model since the simplified polygons are being used.
+
+## Parallel Code
+
+Since calculating distances to polygons is independent for each polygon, `redist` can be run in parallel by setting the `cores` to a number greater than one. Models are built and make predictions independent of one another so so the `remap` function and `predict` method also have a `cores` parameter for parallel computing.
 
 
 $~$
@@ -403,7 +407,7 @@ ggplot(toy_regions) +
   theme_bw()
 ```
 
-The predictions from the `remap` object start to become a weighted average of regional predictions when the predictions are within 30km of a region border. The following plots show what is happening with both the `SHARP` and `SMOOTH` predictions at predicted values along the 0.8 degree N line.
+The smooth predictions from the `remap` object start to become a weighted average of regional predictions when the predictions are within 30km of a region border. The following plots show what is happening with both the `SHARP` and `SMOOTH` predictions at predicted values along the 0.8 degree N line.
 
 ```{r sharp08, fig.width = 4, fig.height = 3, fig.align='center'}
 ggplot(grd_pred %>% dplyr::filter(LAT == 0.8),
