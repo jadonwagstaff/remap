@@ -24,6 +24,22 @@
 #' @seealso
 #'   \code{\link{remap}} - uses redist for regional models.
 #'
+#' @examples
+#' library(remap)
+#' library(sf)
+#' data(utsnow)
+#' data(utws)
+#'
+#' # Simplify polygons to run example faster
+#' utws_simp <- sf::st_simplify(utws, dTolerance = 0.01)
+#'
+#' # Build a matrix of distances between objects of utsnow and utws
+#' # We will not set max_dist, so all distances will be found
+#' dists <- redist(data = utsnow,
+#'                 regions = utws_simp,
+#'                 region_id = HUC2)
+#'
+#' head(dists)
 #'
 #' @export
 redist <- function(data, regions, region_id, max_dist, cores = 1,
@@ -82,7 +98,7 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
                           cores = cores,
                           progress = progress)
   } else {
-    if (progress) cat("Using buffer to find nearest values...\n")
+    if (progress) cat("Building buffer to reduce computation...\n")
 
     # find buffer for regions based on max_dist
     regions_buffer <- suppressWarnings(
@@ -111,7 +127,7 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
     distances[too_far, ] <- dist_fun(points = data[too_far, ],
                                      polygons = regions,
                                      cores = cores,
-                                     progress = progress)
+                                     progress = FALSE)
 
   }
 
@@ -267,5 +283,4 @@ distance_wrapper <- function(points, polygons) {
 
   return(d)
 }
-
 

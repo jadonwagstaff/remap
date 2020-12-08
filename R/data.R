@@ -25,18 +25,19 @@
 
 
 
-#' Watershed polygons within and near the state of Utah.
+#' Watershed polygons within the state of Utah.
 #'
 #' Watersheds are defined by the United States Geological Survey.
-#' The larger HUC2 locations are made up of a set of smaller HUC4
-#' polygons.
+#' Only the largest defines watersheds are used.
 #'
-#' @format An sf object with 394 rows and 9 variables:
+#' @format An sf object with 394 rows and 2 variables:
 #' \describe{
 #'   \item{HUC2}{Largest watershed ID's defined by the USGS.}
-#'   \item{HUC2}{Second largest watershed ID's defined by the USGS.}
 #'   \item{geometry}{sfc multipolygons in lonlat coordinates.}
 #' }
 #' @source \url{https://www.usgs.gov/core-science-systems/ngp/national-hydrography/watershed-boundary-dataset?qt-science_support_page_related_con=4#qt-science_support_page_related_con}
 "utws"
+
+
+
 

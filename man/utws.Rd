@@ -3,12 +3,11 @@
 \docType{data}
 \name{utws}
 \alias{utws}
-\title{Watershed polygons within and near the state of Utah.}
+\title{Watershed polygons within the state of Utah.}
 \format{
-An sf object with 394 rows and 9 variables:
+An sf object with 394 rows and 2 variables:
 \describe{
   \item{HUC2}{Largest watershed ID's defined by the USGS.}
-  \item{HUC2}{Second largest watershed ID's defined by the USGS.}
   \item{geometry}{sfc multipolygons in lonlat coordinates.}
 }
 }
@@ -20,7 +19,6 @@ utws
 }
 \description{
 Watersheds are defined by the United States Geological Survey.
-The larger HUC2 locations are made up of a set of smaller HUC4
-polygons.
+Only the largest defines watersheds are used.
 }
 \keyword{datasets}

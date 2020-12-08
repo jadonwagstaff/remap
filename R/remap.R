@@ -44,6 +44,30 @@
 #'   \code{\link{predict.remap}} - used for predicting on new data.
 #'   \code{\link{redist}} - used for building models within a buffer.
 #'
+#' @examples
+#' library(remap)
+#' library(sf)
+#' data(utsnow)
+#' data(utws)
+#'
+#' # Simplify polygons to run example faster
+#' utws_simp <- sf::st_simplify(utws, dTolerance = 0.01)
+#'
+#' # Build a remap model with lm that has formula snow_water = elevation
+#' # The buffer to collect data around each region is 30km
+#' # The minimum number of observations per region is 10
+#' remap_model <- remap(data = utsnow,
+#'                      regions = utws_simp,
+#'                      region_id = HUC2,
+#'                      model_function = lm,
+#'                      formula = WESD ~ ELEVATION,
+#'                      buffer = 20,
+#'                      min_n = 10,
+#'                      progress = TRUE)
+#'
+#' # Resubstitution predictions
+#' remap_preds <- predict(remap_model, utsnow, smooth = 10)
+#' head(remap_preds)
 #'
 #' @export
 remap <- function(data, regions, region_id, model_function, buffer, min_n = 0,
@@ -181,7 +205,7 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 0,
 #' If an observation is outside of all regions and smoothing distances, the
 #' closest region will be used to predict.
 #'
-#' @param object \emph{} S3 object output from sboost.
+#' @param object \emph{} S3 object output from remap.
 #' @param data An sf dataframe with point geometry.
 #' @param smooth The distance in km within a region where a smooth transition
 #' to the next region starts. (Can be a named vector with different values for
@@ -218,6 +242,9 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
                         max_dist = smooth,
                         cores = cores,
                         progress = progress)
+  } else {
+    # remove any extra columns in to prevent errors in the next step
+    distances <- distances[, id_list]
   }
 
   # make sure all values have a distance with non-zero weight
@@ -309,6 +336,10 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
 
 
 #' Print method for remap object.
+#'
+#' @param x \emph{} S3 object output from remap.
+#' @param ... Extra arguments.
+#'
 #' @export
 print.remap <- function(x, ...) {
   cat(paste("remap model with",
@@ -322,9 +353,12 @@ print.remap <- function(x, ...) {
 #'
 #' Plots the regions used for modeling.
 #'
+#' @param x \emph{} S3 object output from remap.
+#' @param ... Arguments to pass to regions plot.
+#'
 #' @export
 plot.remap <- function(x, ...) {
-  plot(x$regions)
+  plot(x$regions, ...)
 }
 
 

@@ -9,7 +9,7 @@ closest region will be used to predict.}
 \method{predict}{remap}(object, data, smooth, distances, cores = 1, progress = FALSE, ...)
 }
 \arguments{
-\item{object}{\emph{} S3 object output from sboost.}
+\item{object}{\emph{} S3 object output from remap.}
 
 \item{data}{An sf dataframe with point geometry.}
 

@@ -1,31 +1,32 @@
 Package: remap
 Type: Package
-Title: Regional Spatial Modeling for Mapping
-Version: 0.1.1.9002
+Title: Regional Spatial Modeling with Continuous Borders
+Version: 0.1.1.9003
 Authors@R: person("Jadon", "Wagstaff", email = "jadonw@gmail.com", role = c("aut", "cre"))
-Description: Creates separate models for different spatial regions. If regional models
-    are smooth, the resulting prediction surface is smooth accross spatial surface, even
-    at region borders.
+Description: Creates separate regression models for different spatial regions. If regional 
+    models are continuous, the resulting prediction surface is continuous across the spatial 
+    dimensions, even at region borders.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Imports: 
-    parallel, 
-    plyr, 
-    sf, 
-    stats, 
-    units, 
-    utils
+    parallel (>= 3.6.0), 
+    plyr (>= 0.1.8.6), 
+    sf (>= 0.9.6), 
+    stats (>= 3.6.0), 
+    units (>= 0.6.7), 
+    utils (>= 3.6.0)
 RoxygenNote: 7.1.1
 Suggests: 
-    dplyr,
-    ggplot2,
-    knitr,
-    lwgeom,
-    magrittr,
-    maps,
-    mgcv,
-    rmarkdown
+    dplyr (>= 1.0.2),
+    ggplot2 (>= 3.3.2),
+    knitr (>= 1.30),
+    lwgeom (>= 0.2.5),
+    magrittr (>= 2.0.1),
+    maps (>= 3.3.0),
+    mgcv (>= 1.8.33),
+    rmarkdown (>= 2.5),
+    tibble (>= 3.0.4)
 VignetteBuilder: knitr
 Depends: 
-    R (>= 2.10)
+    R (>= 3.6.0)

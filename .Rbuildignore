@@ -1,3 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 LICENCE
+^LICENSE\.md$
+^remap_extra$
+^doc$
+^Meta$

@@ -68,6 +68,32 @@ object that can be used to predict on new data using generic function
 predict(). If a model fails for a region, a warning is given but the modeling
 process will continue.
 }
+\examples{
+library(remap)
+library(sf)
+data(utsnow)
+data(utws)
+
+# Simplify polygons to run example faster
+utws_simp <- sf::st_simplify(utws, dTolerance = 0.01)
+
+# Build a remap model with lm that has formula snow_water = elevation
+# The buffer to collect data around each region is 30km
+# The minimum number of observations per region is 10
+remap_model <- remap(data = utsnow,
+                     regions = utws_simp,
+                     region_id = HUC2,
+                     model_function = lm,
+                     formula = WESD ~ ELEVATION,
+                     buffer = 20,
+                     min_n = 10,
+                     progress = TRUE)
+
+# Resubstitution predictions
+remap_preds <- predict(remap_model, utsnow, smooth = 10)
+head(remap_preds)
+
+}
 \seealso{
 \code{\link{predict.remap}} - used for predicting on new data.
   \code{\link{redist}} - used for building models within a buffer.

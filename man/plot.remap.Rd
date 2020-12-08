@@ -6,6 +6,11 @@
 \usage{
 \method{plot}{remap}(x, ...)
 }
+\arguments{
+\item{x}{\emph{} S3 object output from remap.}
+
+\item{...}{Arguments to pass to regions plot.}
+}
 \description{
 Plots the regions used for modeling.
 }

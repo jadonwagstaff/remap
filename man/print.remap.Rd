@@ -6,6 +6,11 @@
 \usage{
 \method{print}{remap}(x, ...)
 }
+\arguments{
+\item{x}{\emph{} S3 object output from remap.}
+
+\item{...}{Extra arguments.}
+}
 \description{
 Print method for remap object.
 }
