@@ -32,6 +32,10 @@ library(mgcv)     # For GAM modeling
 library(remap)
 data(utsnow)
 data(utws)
+
+# Reset CRS in case user has old version of GDAL 
+sf::st_crs(utsnow) <- 4326
+sf::st_crs(utws) <- 4326
 ```
 
 ## Data
