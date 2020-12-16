@@ -107,9 +107,8 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
 
     # use buffer to find points close enough to a region to calculate distances
     # used alply rather than apply since alply will always return a list
-    buffer_indices <- plyr::alply(
-      suppressMessages(sf::st_within(data, regions_buffer, sparse = FALSE)),
-      2, which
+    buffer_indices <- suppressMessages(
+      sf::st_within(data, regions_buffer, sparse = FALSE)
     )
 
 
@@ -181,7 +180,7 @@ single_core_dist <- function(points, polygons, index, progress, ...) {
       if (missing(index)) {
         d[, i] <- distance_wrapper(points, polygons[i])
       } else {
-        d[index[[i]], i] <- distance_wrapper(points[index[[i]], ], polygons[i])
+        d[index[, i], i] <- distance_wrapper(points[index[, i], ], polygons[i])
       }
 
       # update progress
@@ -239,7 +238,7 @@ multi_core_dist <- function(points, polygons, index, cores, ...) {
       X = 1:length(polygons),
       fun = function(x) {
         col <- rep(as.numeric(NA), nrow(points))
-        col[index[[x]]] <- distance_wrapper(points[index[[x]], ], polygons[x])
+        col[index[, x]] <- distance_wrapper(points[index[, x], ], polygons[x])
         return(col)
       }
     )
