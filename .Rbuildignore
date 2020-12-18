@@ -5,3 +5,5 @@ LICENCE
 ^remap_extra$
 ^doc$
 ^Meta$
+cran-comments.md
+README.md

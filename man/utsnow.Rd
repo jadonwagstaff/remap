@@ -12,7 +12,7 @@ An sf points object with 394 rows and 9 variables:
   \item{LATITUDE}{Latitude of weather station.}
   \item{LONGITUDE}{Longitude of weather station.}
   \item{ELEVATION}{Elevation of weather station.}
-  \item{HUC2}{Largest watershed area containing this weather station
+  \item{HUC2}{Largest watershed region containing this weather station
   (see utws data).}
   \item{WESD}{Water equivalent of snow density in mm of water.}
   \item{geometry}{sfc points in lonlat coordinates.}

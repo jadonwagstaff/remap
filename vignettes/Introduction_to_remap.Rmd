@@ -1,7 +1,7 @@
 ---
 title: "Introduction to remap"
 author: "Jadon Wagstaff"
-date: "12/8/2020"
+date: "12/17/2020"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction to remap}
@@ -18,7 +18,9 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-Most spatial modeling approaches work under the assumption that the data used for modeling are stationary. That is to say, the mean and variance of the response variable are constant in space. This assumption is often violated, especially when modeling large areas. Sometimes, a nonstationary process can be transformed into a stationary one by modeling external trends; however, this is not possible to achieve if the external trends are not constant over space. In such cases, an alternative approach is to partition the space into stationary sub-regions and model each region separately. The problem with this approach is that continuous response variables will have discontinuities in the prediction surface at the borders of the regions. The package `remap` is an implementation of regional modeling with border smoothing method that results in a continuous global model. Border smoothing is accomplished by taking a weighted average of regional model predictions near region borders.
+Most spatial modeling approaches work under the assumption that the data used for modeling are stationary. That is to say, the mean and variance of the response variable are constant in space. This assumption is often violated, especially when modeling large areas. Sometimes, a nonstationary process can be transformed into a stationary one by modeling external trends; however, this is not possible to achieve if the external trends are not constant over space. In such cases, an alternative approach is to partition the space into stationary sub-regions and model each region separately. The problem with this approach is that continuous response variables will have discontinuities in the prediction surface at the borders of the regions. 
+
+The package `remap` is an implementation of a regional modeling with border smoothing method that results in a continuous global model. Border smoothing is accomplished by taking a weighted average of regional model predictions near region borders. The `remap` function is also a convenient way to build independent models in a partitioned space, even if no border smoothing is required for the problem.
 
 ```{r setup, message=FALSE, warning=FALSE}
 library(magrittr) # For pipe %>% functionality
@@ -65,7 +67,7 @@ $~$
 
 The `remap` function requires the following 4 parameters:
 
-* `data` - Observations with a spatial component used form modeling.
+* `data` - Observations with a spatial component used for modeling.
 * `regions` - Polygons describing the regions used to build each model.
 * `model_function` - A function that takes a subset of the `data` and returns a model.
 * `buffer` - Observations are located within and near a region are used to build each model. The `buffer` parameter dictates how near an observation must be to a location to be included in that region's model.
@@ -150,16 +152,16 @@ $~$
 
 # Computational Speedup
 
-Many modeling techniques that partition space depend on the distance between prediction locations and the *center* of each region. The center of a region is not sufficient to characterize the region when the region is oddly shaped, elongated, or nor convex. The border smoothing method in `remap` uses the distances to region *borders* rather than region centers. This allows for regions of any shape being used for modeling. Building models and predicting with remap runs fairly slowly for something as simple as linear models. This is because `remap` is calculating the distances between each observation and each region for both the modeling and the prediction steps. This section outlines the steps taken to ameliorate the computational burden of `remap` which allow `remap` to scale to large problems.
+Many modeling techniques that partition space depend on the distance between prediction locations and the *center* of each region. The center of a region is not sufficient to characterize the region when the region is oddly shaped, elongated, or nor convex. The border smoothing method in `remap` uses the distances to region *borders* rather than region centers. This allows for regions of any shape being used for modeling. Building models and predicting with remap runs fairly slowly for something as simple as linear models. This is because `remap` is calculating the distances between each observation and the nearest border of each region for both the modeling and the prediction steps. This section outlines the steps taken to ameliorate the computational burden of `remap` which allow `remap` to scale to large problems.
 
 ## Simplifying Regions
 
-Many spatial processes require valid polygons (i.e. not gaps in region boundaries), which limits the degree of polygon simplification that can be achieved. One desirable feature of remap is the ability of each model to make smooth predict outside of polygons within a smoothing zone, which smooths over any small gaps in polygons that occurs in an aggressive geometrical simplification. Thus, by only preserving the macro structure of the input polygons, we can greatly speed up distance computations without losing fidelity in model predictions.
+Many spatial processes require continuous polygons (i.e. no gaps in region boundaries), which limits the degree of polygon simplification that can be achieved. One desirable feature of remap is the ability of each model to make smooth predict outside of polygons within a smoothing zone, which smooths over any small gaps in polygons that occurs in an aggressive geometrical simplification. Thus, by only preserving the macro structure of the input polygons, we can greatly speed up distance computations without losing fidelity in model predictions.
 
 Distance calculation time can be dramatically reduced by simplifying the polygons passed to `remap` using the `sf` package `st_simplify` function. The function gives a warning that can be ignored for our purposes, we are only trying to preserve the macro structure and the regions are not near any poles. Gaps at region borders appear, but remap has the ability to predict outside of regions and predictions will remain smooth as long as the gaps aren't wider than two times the `smooth` parameter. Notice how the simplified polygons retain the basic structure of the original regions:
 
 
-```{r polygons, fig.width = 4, fig.height = 4, fig.align='center'}
+```{r polygons, fig.width = 6, fig.height = 4, fig.align='center'}
 utws_simp <- utws %>% sf::st_simplify(dTolerance = 0.05)
 
 rbind(
@@ -225,7 +227,7 @@ $~$
 
 
 
-While linear models are great for illustration, many spatial modeling approaches will require more complex regional model forms. The `remap` function is flexible enough to handle arbitrary model inputs and outputs, with the only requirement being that the model output must be compatible for use with the generic predict function and return a numeric output. 
+While linear models are great for illustration, many spatial modeling approaches will require more complex regional model forms. The `remap` function is flexible enough to handle arbitrary model inputs and outputs, with the only requirement being that the model output must be compatible for use with the generic `predict` function and return a numeric output. 
 
 The `remap` function takes a `model_function` as a parameter. The `model_function` must take a subset of the sf `data` parameter sent to `remap` as the first unnamed parameter. The output of the `model_function` must return an object that returns a vector of numeric values when the `predict` function is applied to that object. In the linear model example, `model_function` was `lm` and the output to this function has a method written for the `predict` function. The `lm` function takes a `formula` as the first parameter, but we added a `formula` in the remap parameters so the first unnamed parameter for `lm` is `data`.
 

@@ -24,7 +24,7 @@ remap(
 
 \item{region_id}{Optional name of column in 'regions' that contains the id
 that each region belongs to (no quotes). If null, it will be assumed that
-each polygon is its own region (no regions have more than one polygon).}
+each row of 'regions' is its own region.}
 
 \item{model_function}{A function that can take a subset of 'data' and
 output a model that can be used to predict new values when passed to generic
@@ -47,7 +47,8 @@ distance, no max_dist parameter should be used in redist().}
 \item{cores}{Number of cores for parallel computing. 'cores' above
 default of 1 will require more memory.}
 
-\item{progress}{If true, a text progress bar is printed to the console.}
+\item{progress}{If true, a text progress bar is printed to the console.
+(Progress bar only appears if 'cores' = 1.)}
 
 \item{...}{Extra arguments to pass to 'model_function' function.}
 }
@@ -57,7 +58,8 @@ A \emph{remap} S3 object containing:
   \item{\emph{models}}{A list of models containing a model output by
   'model_function' for each region.}
   \item{\emph{regions}}{'regions' object passed to the function (used for
-  prediction).}
+  prediction). The first column is 'region_id' or the row number of 'regions'
+  if 'region_id is missing. The second column is the region geometry.}
   \item{\emph{call}}{Shows the parameters that were passed to the function.}
 }
 }
@@ -95,5 +97,5 @@ head(remap_preds)
 }
 \seealso{
 \code{\link{predict.remap}} - used for predicting on new data.
-  \code{\link{redist}} - used for building models within a buffer.
+  \code{\link{redist}} - used for pre-computing distances.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/remap.R
 \name{predict.remap}
 \alias{predict.remap}
-\title{Make predictions given a set of data and smooths predictions between regions.
+\title{Make predictions given a set of data and smooths predictions at region borders.
 If an observation is outside of all regions and smoothing distances, the
 closest region will be used to predict.}
 \usage{
@@ -26,15 +26,16 @@ internally if not provided).}
 \item{cores}{Number of cores for parallel computing. 'cores' above
 default of 1 will require more memory.}
 
-\item{progress}{If true, a text progress bar is printed to the console.}
+\item{progress}{If true, a text progress bar is printed to the console.
+(Progress bar only appears if 'cores' = 1.)}
 
 \item{...}{Arguments to pass to individual model prediction functions.}
 }
 \value{
-Predictions in the form of a vector.
+Predictions in the form of a numeric vector.
 }
 \description{
-Make predictions given a set of data and smooths predictions between regions.
+Make predictions given a set of data and smooths predictions at region borders.
 If an observation is outside of all regions and smoothing distances, the
 closest region will be used to predict.
 }

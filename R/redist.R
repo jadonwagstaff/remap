@@ -1,7 +1,8 @@
 #' Get distances between data and regions.
 #'
-#' Finds distances in km between data provided as sf dataframe with point geometry
-#' and regions provided as sf dataframe with polygon or multipolygon geometry.
+#' Finds distances in km between data provided as sf dataframe with point
+#' geometry and regions provided as sf dataframe with polygon or multipolygon
+#' geometry.
 #'
 #'
 #' @param data An sf data frame with point geometry.
@@ -12,14 +13,16 @@
 #' @param max_dist a maximum distance that is needed for future calculations.
 #' (Set equal to maximum 'smooth' when predicting on new observations.)
 #' @param cores Number of cores for parallel computing. 'cores' above
-#' default of 1 will require more memory.
-#' @param progress If true, a text progress bar is printed to the console. Progress
-#' set to FALSE will find distances quicker if max_dist is not specified.
+#' default of 1 will require more memory. (Progress bar only appears if '
+#' cores' = 1.)
+#' @param progress If true, a text progress bar is printed to the console.
+#' Progress set to FALSE will find distances quicker if max_dist is not
+#' specified.
 #'
 #' @return A matrix where each row corresponds one-to-one with each row in
-#' provided 'data'. Matrix columns are either named with regions from 'region_id'
-#' column of 'regions' or the row numbers of 'regions' if 'region_id' is NULL.
-#' Values are in kilometers.
+#' provided 'data'. Matrix columns are either named with regions from
+#' 'region_id' column of 'regions' or the row numbers of 'regions' if
+#' 'region_id' is missing. Values are in kilometers.
 #'
 #' @seealso
 #'   \code{\link{remap}} - uses redist for regional models.
@@ -56,7 +59,7 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
 
   # process regions so only one line makes up a region
   regions <- process_regions(regions, region_id)
-  id_list <- regions[[1]]
+  id_list <- as.character(regions[[1]])
 
   # decide which helper distance function to use
   dist_fun <- ifelse(cores > 1, multi_core_dist, single_core_dist)
