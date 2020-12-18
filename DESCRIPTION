@@ -12,6 +12,7 @@ BugReports: https://github.com/jadonwagstaff/remap/issues
 Encoding: UTF-8
 LazyData: true
 Imports: 
+    graphics (>= 3.6.0),
     parallel (>= 3.6.0), 
     sf (>= 0.9.6), 
     stats (>= 3.6.0), 

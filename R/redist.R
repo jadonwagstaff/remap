@@ -33,6 +33,10 @@
 #' data(utsnow)
 #' data(utws)
 #'
+#' # Reset CRS in case user has old version of GDAL
+#' sf::st_crs(utsnow) <- 4326
+#' sf::st_crs(utws) <- 4326
+#'
 #' # Simplify polygons to run example faster
 #' utws_simp <- sf::st_simplify(utws, dTolerance = 0.01)
 #'
