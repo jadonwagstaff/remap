@@ -11,7 +11,6 @@ Encoding: UTF-8
 LazyData: true
 Imports: 
     parallel (>= 3.6.0), 
-    plyr (>= 0.1.8.6), 
     sf (>= 0.9.6), 
     stats (>= 3.6.0), 
     units (>= 0.6.7), 

@@ -30,9 +30,10 @@ each polygon is its own region (no regions have more than one polygon).}
 output a model that can be used to predict new values when passed to generic
 function predict().}
 
-\item{buffer}{A buffer zone around each region in km where data is included
-in the data used to build models for each region. (Can be a named vector
-with different values for each unique 'region_id' in 'region'.)}
+\item{buffer}{The length of the buffer zone around each region in km where
+observations are included in the data used to build models for each region.
+(Can be a named vector with different values for each unique 'region_id' in
+'region'.)}
 
 \item{min_n}{The minimum number of observations to use when building a model.
 If there are not enough observations in the region and buffer, then the
@@ -56,8 +57,6 @@ A \emph{remap} S3 object containing:
   \item{\emph{models}}{A list of models containing a model output by
   'model_function' for each region.}
   \item{\emph{regions}}{'regions' object passed to the function (used for
-  prediction).}
-  \item{\emph{region_id}}{'region_id' object passed to the function (used for
   prediction).}
   \item{\emph{call}}{Shows the parameters that were passed to the function.}
 }

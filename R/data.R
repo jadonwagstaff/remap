@@ -15,8 +15,6 @@
 #'   \item{ELEVATION}{Elevation of weather station.}
 #'   \item{HUC2}{Largest watershed area containing this weather station
 #'   (see utws data).}
-#'   \item{HUC2}{Second largest watershed area containing this weather
-#'   station (see utws data).}
 #'   \item{WESD}{Water equivalent of snow density in mm of water.}
 #'   \item{geometry}{sfc points in lonlat coordinates.}
 #' }
