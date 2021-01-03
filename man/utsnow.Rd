@@ -3,7 +3,7 @@
 \docType{data}
 \name{utsnow}
 \alias{utsnow}
-\title{Snowpack at weather stations in utah on April 1st, 2011.}
+\title{Snowpack at weather stations in Utah on April 1st, 2011.}
 \format{
 An sf points object with 394 rows and 9 variables:
 \describe{
@@ -13,9 +13,9 @@ An sf points object with 394 rows and 9 variables:
   \item{LONGITUDE}{Longitude of weather station.}
   \item{ELEVATION}{Elevation of weather station.}
   \item{HUC2}{Largest watershed region containing this weather station
-  (see utws data).}
+  (see \code{\link{utws}} data).}
   \item{WESD}{Water equivalent of snow density in mm of water.}
-  \item{geometry}{sfc points in lonlat coordinates.}
+  \item{geometry}{sfc points in geographic coordinates.}
 }
 }
 \source{

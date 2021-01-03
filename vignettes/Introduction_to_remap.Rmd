@@ -1,7 +1,7 @@
 ---
 title: "Introduction to remap"
-author: "Jadon Wagstaff"
-date: "12/17/2020"
+author: "Jadon S. Wagstaff and Brennan Bean"
+date: "2020-01-03"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction to remap}
@@ -78,7 +78,7 @@ The `remap` function requires the following 4 parameters:
 
 The following parameters are optional:
 
-* `region_id` - A column name of `regions` which describes which polygons to include in each region. This is helpful if any region has polygons described in multiple rows in the `sf` object.
+* `region_id` - A column name of `regions` which describes which polygons to include in each region. This is helpful if any region has polygons described in multiple rows in the `sf` object. The `region_id` allows for combinations of smaller polygons into larger regions.
 * `min_n` - The minimum number of observations required to build a model in each region. If a region does not contain enough observations within its border and buffer zone, the nearest `min_n` observations will be used for modeling.
 
 In this section, we use some simple linear models to model snow water content in Utah. First a global model using all data, then a regional model using `remap`. The WESD measurement in our example data commonly shares a log-linear relationship with elevation in mountainous western states. Many locations in Utah have a value of 0 for WESD on April first. Since zero snow values in log transformed variables add another level of complexity to the modeling process, we remove them for now and make a new dataset called `utsnz`.
@@ -129,6 +129,7 @@ For this modeling task, any observation within 20km of a region is to be include
 
 
 ```{r lm_huc2, message=FALSE}
+t1 <- Sys.time()
 lm_huc2 <- remap::remap(
   utsnz, utws, region_id = HUC2, 
   buffer = 20, min_n = 10,
@@ -137,7 +138,13 @@ lm_huc2 <- remap::remap(
 )
   
 lm_huc2_mse <- mean((utsnz$WESD - exp(predict(lm_huc2, utsnz, smooth = 10)))^2)
+t2 <- Sys.time()
+
+# mse
 lm_huc2_mse
+
+# runtime
+round(difftime(t2, t1), 1)
 ```
 
 The output of `remap` returns a list that contains a list of models built in each region and an `sf` data frame storing the region polygons. The models for each region can be accessed directly. For example, the coefficients for each model can be accessed with the following code:
@@ -156,7 +163,9 @@ $~$
 
 # Computational Speedup
 
-Many modeling techniques that partition space depend on the distance between prediction locations and the *center* of each region. The center of a region is not sufficient to characterize the region when the region is oddly shaped, elongated, or nor convex. The border smoothing method in `remap` uses the distances to region *borders* rather than region centers. This allows for regions of any shape being used for modeling. Building models and predicting with remap runs fairly slowly for something as simple as linear models. This is because `remap` is calculating the distances between each observation and the nearest border of each region for both the modeling and the prediction steps. This section outlines the steps taken to ameliorate the computational burden of `remap` which allow `remap` to scale to large problems.
+
+
+Many modeling techniques that partition space depend on the distance between prediction locations and the *center* of each region. However, the center is a poor characterization of irregularly shaped regions. The border smoothing method in `remap` uses the distances to region *borders* rather than region centers. This allows for regions of any shape being used for modeling. Building models and predicting with remap runs fairly slowly for something as simple as linear models. This is because `remap` requires distance calculations between each observation and the region boundaries in both the modeling and prediction steps. This tends to be computationally expensive with large numbers of points and/or complex region boundaries.  This section outlines the steps taken to ameliorate the computational burden of `remap` which allow `remap` to scale to large problems.
 
 ## Simplifying Regions
 
@@ -179,15 +188,15 @@ ggplot() +
 ```
 
 
-Simplifying the polygons doesn't drastically change the computation time with this problem, but some regions can contain massive polygons with details that are unnecessary for regional modeling. 
+Simplifying the polygons doesn't drastically change the computation time in this particular example, but some regions can contain massive polygons with details that are unnecessary for regional modeling. 
 
 
 
 ## `redist`
 
-The `remap` and `predict` functions both internally call a function called `redist` to calculate distances from points to polygons. The user can directly use the function `redist` to pre-compute distances from points to polygons and the `remap` function can use these distances as a parameter when making multiple models from the same data. In the absence of pre-specified distances, remap will compute distances at run time which may not be as efficient. 
+The `remap` and `predict` functions both internally call a function called `redist` to calculate distances from points to polygons. The user can directly use the function `redist` to pre-compute distances from points to polygons and use the pre-computed distances as direct inputs in the `remap` function. The pre-computing step greatly reduces computational costs if multiple regional models must be made with the same input data and polygons.
 
-Distances from prediction locations need only be computed to polygon boundaries for which the prediction location falls within their smoothing zone. Buffered polygons can be used to quickly determine candidate observations for distance calculations in each region. The `max_dist` parameter of `redist` can be used to make these buffered polygons. This drastically reduces the number of points for which distance calculations must be performed which greatly improves computation times. 
+Distances from prediction locations need only be computed to polygon boundaries for which the prediction location falls within their smoothing zone. Buffered polygons can be used to quickly determine candidate observations for distance calculations in each region. The `max_dist` parameter of `redist` can be used to make these buffered polygons. This drastically reduces the number of points for which distance calculations must be performed and greatly improves computation times. 
 
 ```{r redist, message=FALSE}
 huc2_dist_nz <- remap::redist(utsnz, utws_simp, region_id = HUC2)
@@ -198,6 +207,7 @@ head(huc2_dist_nz)
 The newly created distance matrix can be sent to `remap` and `predict` as a parameter. Run the following code and notice how much faster the `remap` and `predict` functions run when the distances are pre-calculated.
 
 ```{r lm_huc2_simp, message=FALSE}
+t1 <- Sys.time()
 lm_huc2 <- remap(
   utsnz, utws_simp, region_id = HUC2, 
   buffer = 20, min_n = 10,
@@ -211,7 +221,13 @@ lm_huc2_mse <- mean(
      exp(predict(lm_huc2, utsnz, smooth = 10,
                  distances = huc2_dist_nz)))^2
 )
+t2 <- Sys.time()
+
+# mse
 lm_huc2_mse
+
+# runtime
+round(difftime(t2, t1), 1)
 ```
 
 The MSE for this model is slightly different than previous regional linear model since the simplified polygons are being used.
@@ -233,9 +249,14 @@ $~$
 
 While linear models are great for illustration, many spatial modeling approaches will require more complex regional model forms. The `remap` function is flexible enough to handle arbitrary model inputs and outputs, with the only requirement being that the model output must be compatible for use with the generic `predict` function and return a numeric output. 
 
-The `remap` function takes a `model_function` as a parameter. The `model_function` must take a subset of the sf `data` parameter sent to `remap` as the first unnamed parameter. The output of the `model_function` must return an object that returns a vector of numeric values when the `predict` function is applied to that object. In the linear model example, `model_function` was `lm` and the output to this function has a method written for the `predict` function. The `lm` function takes a `formula` as the first parameter, but we added a `formula` in the remap parameters so the first unnamed parameter for `lm` is `data`.
+The `remap` function takes a `model_function` as a parameter. The `model_function` must have the following two features:
 
-Suppose we want to make a generalized additive model (GAM) that is limited to only making positive predictions. We also don't want to predict a number greater than the highest observed response in each region to avoid over extrapolation. The following functions can be written to achieve this in remap:
+* Its first unnamed function argument must take a subset of an `sf` data point object,
+* The function must output an object with a generic predict function that returns a vector of numeric values.
+
+Note that named function arguments can be supplied at the end of the remap function, as was the case with the `formula` argument in the linear model example shown previously. The key is that the first unnamed parameter be dedicated to data input. 
+
+Suppose we want to make a generalized additive model (GAM) that is limited to only making positive predictions. We also don't want to predict a number greater than the highest observed response in each region to avoid over extrapolation. This can be accomplished through wrapper functions for both `gam` and `predict.gam` that restrict predicted values to a specified range.
 
 ```{r gam}
 gam_limit <- function(data, fml) {
@@ -297,7 +318,7 @@ First, the distances are pre-calculated so the distance calculations aren't repe
 huc2_dist <- remap::redist(utsnow, utws, region_id = HUC2)
 ```
 
-HUC2 regions are used to build a regionalized GAM models with `remap`. We will reduce the knots on the splines on the sphere from 50 to 25 so we don't need as many degrees of freedom for each model. The `min_n` can be set to 35 to allow at least 5 degrees of freedom per model.
+HUC2 regions are used to build a regionalized GAM models with `remap`. We will reduce the knots on the splines on the sphere from 50 to 25 so we don't need so many degrees of freedom for each model. The `min_n` can be set to 35 to allow at least 5 degrees of freedom per model.
 
 ```{r gam_huc2}
 # Initialize predictions
@@ -340,7 +361,7 @@ $~$
 
 # Smooth Predictions
 
-A toy model is best used to show how smooth predictions work since the Utah snow water content models have extreme values and sharp changes with elevation. The toy model has 3 regional models with contrived response variables that consists of an affine combination of longitude and latitude values. The left region predicts $lat - lon$, bottom region predicts $lon - lat - 0.4$, and right region predicts $lat - lon + 0.3$
+A toy model is best used to show how smooth predictions work since the Utah snow water content models have extreme values and sharp changes with elevation. The toy model has 3 regional models with contrived response variables that consists of an affine combination of longitude and latitude values. The left region predicts $lat - lon$, the bottom region predicts $lon - lat - 0.4$, and the right region predicts $lat - lon + 0.3$
 
 ```{r toy}
 # Make regions
@@ -395,42 +416,30 @@ ggplot2::ggplot(toy_regions, aes(fill = id)) +
 
 
 
-The `remap_toy_model` object can now be used to make predictions on the `grd` object. There are `r nrow(grd)`  points in the `grd` object but the regions are simple, so it will not take long to find distances. Two predictions will be made, the `SHARP` predictions will have a smoothing parameter near zero and the `SMOOTH` predictions will have a smoothing parameter set to 30km.
+The `remap_toy_model` object can now be used to make predictions on the `grd` object. There are `r nrow(grd)`  points in the `grd` object but the regions are simple, so it will not take long to find distances. Two predictions will be made, the `SHARP` predictions will have a smoothing parameter of zero and the `SMOOTH` predictions will have a smoothing parameter set to 30km.
 
 ```{r grid}
 grd_pred <- grd %>%
-  dplyr::mutate(SHARP = predict(remap_toy_model, grd, smooth = 0.001),
+  dplyr::mutate(SHARP = predict(remap_toy_model, grd, smooth = 0),
                 SMOOTH = predict(remap_toy_model, grd, smooth = 30),
                 LON = sf::st_coordinates(.)[, "X"],
                 LAT = sf::st_coordinates(.)[, "Y"])
 ```
 
-Notice how the predictions at the borders of the toy regions are smoothed:
+The smooth predictions from the `remap` object start to become a weighted average of regional predictions when the predictions are within 30km of a region border. The following plots show what is happening with both the `SHARP` and `SMOOTH` predictions at predicted values at all locations and specific plots along the 0.8 degree N line. Notice how the predictions at the borders of the toy regions are smoothed:
 
 ```{r sharp, fig.width = 5, fig.height = 4, fig.align='center'}
 ggplot(toy_regions) +
   geom_sf() +
   geom_tile(data = grd_pred, aes(x = LON, y = LAT, fill = SHARP)) +
   scale_fill_viridis_c(limits = c(-0.3, 1)) +
-  ggtitle("Sharp Predictions") +
+  geom_hline(yintercept = 0.8) +
+  ggtitle("Sharp Predictions", "Black line corresponds to x-axis of the next plot.") +
   xlab("") + ylab("") +
   theme_bw()
 ```
 
-
-```{r smooth, fig.width = 5, fig.height = 4, fig.align='center'}
-ggplot(toy_regions) +
-  geom_sf() +
-  geom_tile(data = grd_pred, aes(x = LON, y = LAT, fill = SMOOTH)) +
-  scale_fill_viridis_c(limits = c(-0.3, 1)) +
-  ggtitle("Smooth Predictions") +
-  xlab("") + ylab("") +
-  theme_bw()
-```
-
-The smooth predictions from the `remap` object start to become a weighted average of regional predictions when the predictions are within 30km of a region border. The following plots show what is happening with both the `SHARP` and `SMOOTH` predictions at predicted values along the 0.8 degree N line.
-
-```{r sharp08, fig.width = 4, fig.height = 3, fig.align='center'}
+```{r sharp08, fig.width = 4, fig.height = 2.5, fig.align='center'}
 ggplot(grd_pred %>% dplyr::filter(LAT == 0.8),
          aes(x = LON, y = SHARP)) +
   geom_line(size = 1) +
@@ -438,12 +447,25 @@ ggplot(grd_pred %>% dplyr::filter(LAT == 0.8),
   theme_minimal()
 ```
 
-```{r smooth08, fig.width = 4, fig.height = 3, fig.align='center'}
+```{r smooth, fig.width = 5, fig.height = 4, fig.align='center'}
+ggplot(toy_regions) +
+  geom_sf() +
+  geom_tile(data = grd_pred, aes(x = LON, y = LAT, fill = SMOOTH)) +
+  scale_fill_viridis_c(limits = c(-0.3, 1)) +
+  geom_hline(yintercept = 0.8) +
+  ggtitle("Smooth Predictions", "Black line corresponds to x-axis of the next plot.") +
+  xlab("") + ylab("") +
+  theme_bw()
+```
+
+```{r smooth08, fig.width = 4, fig.height = 2.5, fig.align='center'}
 ggplot(grd_pred %>% dplyr::filter(LAT == 0.8),
          aes(x = LON, y = SMOOTH)) +
   geom_line(size = 1) +
   ggtitle("Smooth Predictions at 0.8 degrees N") +
   theme_minimal()
 ```
+
+
 
 The `remap` package provides a way to build regional spatial models given a set of observations and a set of regions. The resulting model can make predictions that have no discontinuities at region borders and scales well to large problems.

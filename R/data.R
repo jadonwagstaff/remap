@@ -1,4 +1,4 @@
-#' Snowpack at weather stations in utah on April 1st, 2011.
+#' Snowpack at weather stations in Utah on April 1st, 2011.
 #'
 #' Water equivalent of snow density (WESD) in mm of water at various
 #' location within and surrounding the state of Utah. WESD are
@@ -14,9 +14,9 @@
 #'   \item{LONGITUDE}{Longitude of weather station.}
 #'   \item{ELEVATION}{Elevation of weather station.}
 #'   \item{HUC2}{Largest watershed region containing this weather station
-#'   (see utws data).}
+#'   (see \code{\link{utws}} data).}
 #'   \item{WESD}{Water equivalent of snow density in mm of water.}
-#'   \item{geometry}{sfc points in lonlat coordinates.}
+#'   \item{geometry}{sfc points in geographic coordinates.}
 #' }
 #' @source \url{ftp://ftp.ncdc.noaa.gov/pub/data/ghcn/daily}
 "utsnow"
@@ -31,7 +31,7 @@
 #' @format An sf object with 394 rows and 2 variables:
 #' \describe{
 #'   \item{HUC2}{Largest watershed ID's defined by the USGS.}
-#'   \item{geometry}{sfc multipolygons in lonlat coordinates.}
+#'   \item{geometry}{sfc multipolygon object in geographic coordinates.}
 #' }
 #' @source \url{https://www.usgs.gov/core-science-systems/ngp/national-hydrography/watershed-boundary-dataset?qt-science_support_page_related_con=4#qt-science_support_page_related_con}
 "utws"

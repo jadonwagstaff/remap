@@ -8,7 +8,7 @@
 An sf object with 394 rows and 2 variables:
 \describe{
   \item{HUC2}{Largest watershed ID's defined by the USGS.}
-  \item{geometry}{sfc multipolygons in lonlat coordinates.}
+  \item{geometry}{sfc multipolygon object in geographic coordinates.}
 }
 }
 \source{
