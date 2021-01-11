@@ -11,6 +11,10 @@
 
 \item{...}{Extra arguments.}
 }
+\value{
+No return value, a description of the remap object is printed in the
+console.
+}
 \description{
 Print method for remap object.
 }

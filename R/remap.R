@@ -352,6 +352,9 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
 #' @param x \emph{} S3 object output from remap.
 #' @param ... Extra arguments.
 #'
+#' @return No return value, a description of the remap object is printed in the
+#' console.
+#'
 #' @export
 print.remap <- function(x, ...) {
   cat(paste("remap model with",
@@ -367,6 +370,8 @@ print.remap <- function(x, ...) {
 #'
 #' @param x \emph{} S3 object output from remap.
 #' @param ... Arguments to pass to regions plot.
+#'
+#' @return A list that plots a map of the regions used for modeling.
 #'
 #' @export
 plot.remap <- function(x, ...) {

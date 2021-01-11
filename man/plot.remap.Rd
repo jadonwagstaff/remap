@@ -11,6 +11,9 @@
 
 \item{...}{Arguments to pass to regions plot.}
 }
+\value{
+A list that plots a map of the regions used for modeling.
+}
 \description{
 Plots the regions used for modeling.
 }
