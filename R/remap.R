@@ -109,11 +109,6 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 0,
                         progress = progress)
   }
 
-  # Reduce areas to places that have values present
-  # ============================================================================
-  keep <-  apply(distances, 2, function(x) sum(x == 0 & !is.na(x)) > 0)
-  id_list <- id_list[keep]
-
   # Make function for building models
   # ============================================================================
   make_model <- function(id) {
