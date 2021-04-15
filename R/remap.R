@@ -293,7 +293,7 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
 
   # Make predictions (if single core) and smooth to final output
   # ============================================================================
-  output <- rep(as.numeric(NA), nrow(data))
+  output <- rep(NA_real_, nrow(data))
   weightsum <- rep(0, nrow(data))
 
   if (progress) {
@@ -359,7 +359,41 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
 print.remap <- function(x, ...) {
   cat(paste("remap model with",
             length(x$models),
-            "regional models"))
+            "regional models\n"))
+}
+
+
+
+#' Summary method for remap object.
+#'
+#' @param object \emph{} S3 object output from remap.
+#' @param ... Extra arguments to pass to regional models.
+#'
+#' @return No return value, a brief summary of the remap object is printed in
+#' the console. This includes the class(es) of the regional models, the
+#' CRS of the regions, and the bounding box of the regions.
+#'
+#' @export
+summary.remap <- function(object, ...) {
+
+  # Get classes
+  classes <- unique(lapply(object$models, class))
+
+  # Get bounding box
+  bbox <- sf::st_bbox(object$regions)
+
+  cat(paste(
+    "Regional models:\n",
+    length(object$models), "regional models of class(es)", classes, "\n\n"
+  ))
+  cat(paste(
+    "Regions:\n",
+    "Regions have CRS", sf::st_crs(object$regions)$input, "with:\n",
+    "xmin =", bbox[1], "\n",
+    "ymin =", bbox[2], "\n",
+    "xmax =", bbox[3], "\n",
+    "ymax =", bbox[4], "\n"
+  ))
 }
 
 

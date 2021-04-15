@@ -3,5 +3,6 @@
 S3method(plot,remap)
 S3method(predict,remap)
 S3method(print,remap)
+S3method(summary,remap)
 export(redist)
 export(remap)

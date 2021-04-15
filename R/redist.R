@@ -171,7 +171,7 @@ single_core_dist <- function(points, polygons, index, progress, ...) {
   # ============================================================================
   } else {
     # allocate distances
-    d <- matrix(as.numeric(NA),
+    d <- matrix(NA_real_,
                 nrow = nrow(points),
                 ncol = length(polygons))
 
@@ -244,7 +244,7 @@ multi_core_dist <- function(points, polygons, index, cores, ...) {
       cl = clusters,
       X = 1:length(polygons),
       fun = function(x) {
-        col <- rep(as.numeric(NA), nrow(points))
+        col <- rep(NA_real_, nrow(points))
         col[index[, x]] <- distance_wrapper(points[index[, x], ], polygons[x])
         return(col)
       }

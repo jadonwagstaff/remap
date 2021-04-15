@@ -9,7 +9,7 @@
 #   NULL or stop message if there is an problem.
 # ==============================================================================
 check_input <- function(data, cores, regions, distances) {
-  if (!"sf" %in% class(data)) stop("data must be class 'sf', see sf package.")
+  if (!methods::is(data, "sf")) stop("data must be class 'sf', see sf package.")
   if (!all(sf::st_geometry_type(data) == "POINT")) {
     stop("'data' must have point geometry.")
   }
@@ -19,7 +19,7 @@ check_input <- function(data, cores, regions, distances) {
   }
 
   if (!missing(regions)) {
-    if (!"sf" %in% class(regions)) {
+    if (!methods::is(regions, "sf")) {
       stop("regions must be class 'sf', see sf package.")
     }
     if (!all(sf::st_geometry_type(regions) %in% c("POLYGON", "MULTIPOLYGON"))) {
@@ -28,7 +28,7 @@ check_input <- function(data, cores, regions, distances) {
 
     if (sf::st_crs(data) != sf::st_crs(regions)) {
       stop("data and regions must have the same CRS.",
-           "See sf::st_transform() for help.")
+           " See sf::st_transform() for help.")
     }
   }
   # TODO: what if data has one row
@@ -96,9 +96,9 @@ process_regions <- function(regions, region_id) {
 # ==============================================================================
 process_numbers <- function(x, name, id_list) {
 
-  if (missing(x) || any(is.na(x)) ||
+  if (missing(x) || anyNA(x) ||
       !is.numeric(x) || any(as.numeric(x) < 0)) {
-    stop(name, "must be a number >= 0.")
+    stop(name, " must be a number >= 0.")
   }
 
   if (length(x) == 1) {
@@ -107,8 +107,8 @@ process_numbers <- function(x, name, id_list) {
   } else if (all(id_list == 1:length(x))) {
     names(x) <- id_list
   } else if (!all(names(x) %in% id_list)) {
-    stop(name, "values must have names equal to unique values",
-         "in the 'region_id' column of 'regions'.")
+    stop(name, " values must have names equal to unique values",
+         " in the 'region_id' column of 'regions'.")
   }
 
   x <- x[id_list]
