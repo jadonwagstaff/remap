@@ -1,0 +1,18 @@
+citHeader("To cite remap in publications use:")
+
+citEntry(
+  entry     = "mastersthesis",
+  title     = "Regionalized Models with Spatially Continuous Predictions at the Borders",
+  type      = "MS Thesis",
+  author    = "Jadon Wagstaff",
+  school    = "Utah State University",
+  year      = "2021",
+  publisher = "All Graduate Theses and Dissertations",
+  note      = "Document No. 8065",
+  url       = "https://digitalcommons.usu.edu/etd/8065/",
+  textVersion = paste(
+    "Wagstaff, J.S. (2021). Regionalized Models with Spatially Continuous Predictions at the Borders",
+    "(Document No. 8065)[MS Thesis, Utah State University]. All Graduate Theses and Dissertations.",
+    "https://digitalcommons.usu.edu/etd/8065/"
+  )
+)
