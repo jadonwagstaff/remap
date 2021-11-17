@@ -33,17 +33,10 @@
 #' data(utsnow)
 #' data(utws)
 #'
-#' # Reset CRS in case user has old version of GDAL
-#' sf::st_crs(utsnow) <- 4326
-#' sf::st_crs(utws) <- 4326
-#'
-#' # Simplify polygons to run example faster
-#' utws_simp <- sf::st_simplify(utws, dTolerance = 0.01)
-#'
 #' # Build a matrix of distances between objects of utsnow and utws
 #' # We will not set max_dist, so all distances will be found
 #' dists <- redist(data = utsnow,
-#'                 regions = utws_simp,
+#'                 regions = utws,
 #'                 region_id = HUC2)
 #'
 #' head(dists)

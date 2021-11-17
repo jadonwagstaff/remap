@@ -57,18 +57,11 @@
 #' data(utsnow)
 #' data(utws)
 #'
-#' # Reset CRS in case user has old version of GDAL
-#' sf::st_crs(utsnow) <- 4326
-#' sf::st_crs(utws) <- 4326
-#'
-#' # Simplify polygons to run example faster
-#' utws_simp <- sf::st_simplify(utws, dTolerance = 0.01)
-#'
-#' # Build a remap model with lm that has formula snow_water = elevation
+#' # Build a remap model with lm that has formula WESD ~ ELEVATION
 #' # The buffer to collect data around each region is 30km
 #' # The minimum number of observations per region is 10
 #' remap_model <- remap(data = utsnow,
-#'                      regions = utws_simp,
+#'                      regions = utws,
 #'                      region_id = HUC2,
 #'                      model_function = lm,
 #'                      formula = WESD ~ ELEVATION,
@@ -77,7 +70,7 @@
 #'                      progress = TRUE)
 #'
 #' # Resubstitution predictions
-#' remap_preds <- predict(remap_model, utsnow, smooth = 10)
+#' remap_preds <- exp(predict(remap_model, utsnow, smooth = 10))
 #' head(remap_preds)
 #'
 #' @export

@@ -34,10 +34,6 @@ library(mgcv)     # For GAM modeling
 library(remap)
 data(utsnow)
 data(utws)
-
-# Reset CRS in case user has old version of GDAL 
-sf::st_crs(utsnow) <- 4326
-sf::st_crs(utws) <- 4326
 ```
 
 ## Data
@@ -46,9 +42,8 @@ To introduce the functionality of remap, we will look at a modeling problem for 
 
 
 ```{r initial_map, fig.width = 6, fig.height = 6, fig.align='center'}
-utstate <- maps::map("state", plot = FALSE, fill = TRUE) %>%
+utstate <- maps::map("state", region = "utah", plot = FALSE, fill = TRUE) %>%
   sf::st_as_sf() %>%
-  dplyr::filter(ID == "utah") %>%
   sf::st_transform(crs = 4326)
 
 ggplot(utws, aes(fill = HUC2)) +
@@ -165,7 +160,7 @@ $~$
 
 
 
-Many modeling techniques that partition space depend on the distance between prediction locations and the *center* of each region. However, the center is a poor characterization of irregularly shaped regions. The border smoothing method in `remap` uses the distances to region *borders* rather than region centers. This allows for regions of any shape being used for modeling. Building models and predicting with remap runs fairly slowly for something as simple as linear models. This is because `remap` requires distance calculations between each observation and the region boundaries in both the modeling and prediction steps. This tends to be computationally expensive with large numbers of points and/or complex region boundaries.  This section outlines the steps taken to ameliorate the computational burden of `remap` which allow `remap` to scale to large problems.
+Many modeling techniques that partition space depend on the distance between prediction locations and the *center* of each region. However, the center is a poor characterization of irregularly shaped regions. The border smoothing method in `remap` uses the distances to region *borders* rather than region centers. This allows for regions of any shape being used for modeling. Keep in mind that `remap` requires distance calculations between each observation and the region boundaries in both the modeling and prediction steps. This tends to be computationally expensive with large numbers of points and/or complex region boundaries.  This section outlines the steps taken to ameliorate the computational burden of `remap` which allow `remap` to scale to large problems.
 
 ## Simplifying Regions
 
@@ -175,7 +170,7 @@ Distance calculation time can be dramatically reduced by simplifying the polygon
 
 
 ```{r polygons, fig.width = 6, fig.height = 4, fig.align='center'}
-utws_simp <- utws %>% sf::st_simplify(dTolerance = 0.05)
+utws_simp <- utws %>% sf::st_simplify(dTolerance = 5000)
 
 rbind(
   utws %>% dplyr::mutate(TYPE = "Original Watershed Polygons"),
@@ -230,7 +225,7 @@ lm_huc2_mse
 round(difftime(t2, t1), 1)
 ```
 
-The MSE for this model is slightly different than previous regional linear model since the simplified polygons are being used.
+The MSE for this model is slightly different than previous regional linear model since the simplified polygons are being used. This is a small problem so simplifying polygons and precomputing distances might be unnecessary; however, these steps can make a large modeling and mapping problem feasible with limited computing resources.
 
 ## Parallel Code
 

@@ -1,3 +1,8 @@
+# remap 0.2.1.001
+
+* Made updates to vignette and examples in documentation to accommodate
+the jump to sf version 1.0.0.
+
 # remap 0.2.1
 
 * remap now makes a model for a region using the min_n nearest observations
