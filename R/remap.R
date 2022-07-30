@@ -53,24 +53,28 @@
 #'
 #' @examples
 #' library(remap)
-#' library(sf)
 #' data(utsnow)
 #' data(utws)
+#'
+#' # We will keep these examples simple by only modeling non-zero values of
+#' # snow water equivalent (WESD)
+#'
+#' utsnz <- utsnow[utsnow$WESD > 0, ]
 #'
 #' # Build a remap model with lm that has formula WESD ~ ELEVATION
 #' # The buffer to collect data around each region is 30km
 #' # The minimum number of observations per region is 10
-#' remap_model <- remap(data = utsnow,
+#' remap_model <- remap(data = utsnz,
 #'                      regions = utws,
 #'                      region_id = HUC2,
 #'                      model_function = lm,
-#'                      formula = WESD ~ ELEVATION,
+#'                      formula = log(WESD) ~ ELEVATION,
 #'                      buffer = 20,
 #'                      min_n = 10,
 #'                      progress = TRUE)
 #'
 #' # Resubstitution predictions
-#' remap_preds <- exp(predict(remap_model, utsnow, smooth = 10))
+#' remap_preds <- exp(predict(remap_model, utsnz, smooth = 10))
 #' head(remap_preds)
 #'
 #' @export

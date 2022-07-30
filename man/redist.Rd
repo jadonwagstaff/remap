@@ -39,7 +39,6 @@ geometry.
 }
 \examples{
 library(remap)
-library(sf)
 data(utsnow)
 data(utws)
 

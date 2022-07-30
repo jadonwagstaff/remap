@@ -22,7 +22,7 @@ Imports:
     stats (>= 3.6.0), 
     units (>= 0.6.7), 
     utils (>= 3.6.0)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Suggests: 
     dplyr (>= 1.0.2),
     ggplot2 (>= 3.3.2),
