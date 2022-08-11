@@ -6,7 +6,16 @@
 If an observation is outside of all regions and smoothing distances, the
 closest region will be used to predict.}
 \usage{
-\method{predict}{remap}(object, data, smooth, distances, cores = 1, progress = FALSE, ...)
+\method{predict}{remap}(
+  object,
+  data,
+  smooth,
+  distances,
+  cores = 1,
+  progress = FALSE,
+  se = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{\emph{} S3 object output from remap.}
@@ -26,13 +35,19 @@ internally if not provided).}
 \item{cores}{Number of cores for parallel computing. 'cores' above
 default of 1 will require more memory.}
 
-\item{progress}{If true, a text progress bar is printed to the console.
+\item{progress}{If TRUE, a text progress bar is printed to the console.
 (Progress bar only appears if 'cores' = 1.)}
+
+\item{se}{If TRUE, predicted values are assumed to be standard errors and
+an upper bound of combined model standard errors are calculated at each
+prediction location. Should stay FALSE unless predicted values from remap are
+standard error values.}
 
 \item{...}{Arguments to pass to individual model prediction functions.}
 }
 \value{
-Predictions in the form of a numeric vector.
+Predictions in the form of a numeric vector. If se is TRUE,
+upper bound for combined standard errors in the form of a numeric vector.
 }
 \description{
 Make predictions given a set of data and smooths predictions at region borders.

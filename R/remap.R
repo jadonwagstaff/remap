@@ -222,15 +222,20 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
 #' default of 1 will require more memory.
 #' @param progress If TRUE, a text progress bar is printed to the console.
 #' (Progress bar only appears if 'cores' = 1.)
+#' @param se If TRUE, predicted values are assumed to be standard errors and
+#' an upper bound of combined model standard errors are calculated at each
+#' prediction location. Should stay FALSE unless predicted values from remap are
+#' standard error values.
 #' @param ... Arguments to pass to individual model prediction functions.
 #'
-#' @return Predictions in the form of a numeric vector.
+#' @return Predictions in the form of a numeric vector. If se is TRUE,
+#' upper bound for combined standard errors in the form of a numeric vector.
 #'
 #' @seealso \code{\link{remap}} building a regional model.
 #'
 #' @export
 predict.remap <- function(object, data, smooth, distances, cores = 1,
-                          progress = FALSE, ...) {
+                          progress = FALSE, se = FALSE, ...) {
   # Check input
   # ============================================================================
   check_input(data = data, cores = cores, distances = distances)
@@ -293,6 +298,7 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
   # ============================================================================
   output <- rep(0, nrow(data))
   weightsum <- rep(0, nrow(data))
+  if (se) wsesum <- rep(0, nrow(data))
 
   if (progress) {
     pb <- utils::txtProgressBar(min = 0, max = length(id_list), style = 3)
@@ -322,7 +328,13 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
     weightsum[indices] <- weightsum[indices] + weight
 
     # update output
-    output[indices] <- output[indices] + weight * preds
+    if (se) {
+      wse <- weight * preds
+      output[indices] <- output[indices] + wse * (wse + 2 * wsesum[indices])
+      wsesum[indices] <- wsesum[indices] + wse
+    } else {
+      output[indices] <- output[indices] + weight * preds
+    }
 
     # update progress bar
     if (progress) {
@@ -332,12 +344,17 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
   }
 
   # get weighted average
+  if (se) output <- sqrt(output)
   output <- output / weightsum
 
   # make sure 0 weightsum values are NA
   output[weightsum == 0] <- NA_real_
 
   if (progress) cat("\n")
+  if (se) cat("Upper bound for standard error calculated at each location.",
+              "\nReminder: make sure that the predict function outputs",
+              "a vector of sdandard error values for each regional model in",
+              "your remap object.\n")
 
   return(output)
 }
