@@ -159,8 +159,8 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
 
     parallel::stopCluster(clusters)
 
-  # Find models for each region id (single core)
-  # ============================================================================
+    # Find models for each region id (single core)
+    # ============================================================================
   } else {
     models <- list()
 
@@ -220,7 +220,7 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
 #' internally if not provided).
 #' @param cores Number of cores for parallel computing. 'cores' above
 #' default of 1 will require more memory.
-#' @param progress If true, a text progress bar is printed to the console.
+#' @param progress If TRUE, a text progress bar is printed to the console.
 #' (Progress bar only appears if 'cores' = 1.)
 #' @param ... Arguments to pass to individual model prediction functions.
 #'
@@ -266,8 +266,8 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
 
     parallel::clusterExport(clusters,
                             c(unlist(lapply(search(), function(x) {
-                                objects(x, pattern = "predict")
-                              }))),
+                              objects(x, pattern = "predict")
+                            }))),
                             envir = environment())
 
     pred_list <- parallel::parLapply(
@@ -291,7 +291,7 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
 
   # Make predictions (if single core) and smooth to final output
   # ============================================================================
-  output <- rep(NA_real_, nrow(data))
+  output <- rep(0, nrow(data))
   weightsum <- rep(0, nrow(data))
 
   if (progress) {
@@ -299,9 +299,7 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
     i <- 1
   }
 
-  # use running weighted average
-  #   \mew_1 = x_1
-  #   \mew_k = \mew_{k-1} + (w_k / \sum_1^k{w_i}) * (x_k - \mew_{k-1})
+  # get weighted sum
   for (id in id_list) {
     # only consider values within smoothing range
     indices <- distances[, id] <= smooth[[id]] & !is.na(distances[, id])
@@ -323,13 +321,8 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
     }
     weightsum[indices] <- weightsum[indices] + weight
 
-    # update output (k > 1)
-    output[indices] <- output[indices] +
-      (weight / weightsum[indices]) * (preds - output[indices])
-
-    # update output (k == 1)
-    starting <- indices & is.na(output)
-    output[starting] <- preds[starting[indices]]
+    # update output
+    output[indices] <- output[indices] + weight * preds
 
     # update progress bar
     if (progress) {
@@ -337,6 +330,12 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
       i <- i + 1
     }
   }
+
+  # get weighted average
+  output <- output / weightsum
+
+  # make sure 0 weightsum values are NA
+  output[weightsum == 0] <- NA_real_
 
   if (progress) cat("\n")
 
