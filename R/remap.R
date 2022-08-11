@@ -329,6 +329,11 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
 
     # update output
     if (se) {
+      if (any(preds < 0)) {
+        warning(sum(preds < 0), " standard error values less than 0 returned ",
+                "for region ", id, ". These values will be assumed to be 0.")
+        preds[preds < 0] <- 0
+      }
       wse <- weight * preds
       output[indices] <- output[indices] + wse * (wse + 2 * wsesum[indices])
       wsesum[indices] <- wsesum[indices] + wse
