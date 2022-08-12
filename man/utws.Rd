@@ -12,7 +12,7 @@ An sf object with 394 rows and 2 variables:
 }
 }
 \source{
-\url{https://www.usgs.gov/core-science-systems/ngp/national-hydrography/watershed-boundary-dataset?qt-science_support_page_related_con=4#qt-science_support_page_related_con}
+\url{https://www.usgs.gov/national-hydrography/watershed-boundary-dataset}
 }
 \usage{
 utws

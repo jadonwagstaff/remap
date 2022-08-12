@@ -33,7 +33,7 @@
 #'   \item{HUC2}{Largest watershed ID's defined by the USGS.}
 #'   \item{geometry}{sfc multipolygon object in geographic coordinates.}
 #' }
-#' @source \url{https://www.usgs.gov/core-science-systems/ngp/national-hydrography/watershed-boundary-dataset?qt-science_support_page_related_con=4#qt-science_support_page_related_con}
+#' @source \url{https://www.usgs.gov/national-hydrography/watershed-boundary-dataset}
 "utws"
 
 
