@@ -25,10 +25,12 @@ check_input <- function(data, cores, regions, distances) {
     if (!all(sf::st_geometry_type(regions) %in% c("POLYGON", "MULTIPOLYGON"))) {
       stop("'regions' must have polygon or multipolygon geometry.")
     }
-
     if (sf::st_crs(data) != sf::st_crs(regions)) {
       stop("data and regions must have the same CRS.",
            " See sf::st_transform() for help.")
+    }
+    if (nrow(regions) == 0) {
+      stop("regions must have at least 1 row.")
     }
   }
   # TODO: what if data has one row

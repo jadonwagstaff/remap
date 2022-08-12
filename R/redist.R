@@ -173,7 +173,7 @@ single_core_dist <- function(points, polygons, index, progress, ...) {
     }
 
     # compute distances by column
-    for (i in 1:length(polygons)) {
+    for (i in seq_along(polygons)) {
 
       # add to distance matrix
       if (missing(index)) {
@@ -226,7 +226,7 @@ multi_core_dist <- function(points, polygons, index, cores, ...) {
   if (missing(index)) {
     d <- parallel::parLapply(
       cl = clusters,
-      X = as.list(1:length(polygons)),
+      X = as.list(seq_along(polygons)),
       fun = function(x) distance_wrapper(points, polygons[x])
     )
   # Compute distances by polygon with index
@@ -234,7 +234,7 @@ multi_core_dist <- function(points, polygons, index, cores, ...) {
   } else {
     d <- parallel::parLapply(
       cl = clusters,
-      X = 1:length(polygons),
+      X = seq_along(polygons),
       fun = function(x) {
         col <- rep(NA_real_, nrow(points))
         col[index[, x]] <- distance_wrapper(points[index[, x], ], polygons[x])
