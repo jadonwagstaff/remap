@@ -8,3 +8,4 @@ LICENCE
 cran-comments.md
 README.md
 ^CRAN-RELEASE$
+^support_docs$

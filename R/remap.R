@@ -334,6 +334,7 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
                 "for region ", id, ". These values will be assumed to be 0.")
         preds[preds < 0] <- 0
       }
+      # https://github.com/jadonwagstaff/remap/blob/main/support_docs/se_algorithm.pdf
       wse <- weight * preds
       output[indices] <- output[indices] + wse * (wse + 2 * wsesum[indices])
       wsesum[indices] <- wsesum[indices] + wse
@@ -358,7 +359,7 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
   if (progress) cat("\n")
   if (se) cat("Upper bound for standard error calculated at each location.",
               "\nReminder: make sure that the predict function outputs",
-              "a vector of sdandard error values for each regional model in",
+              "a vector of standard error values for each regional model in",
               "your remap object.\n")
 
   return(output)

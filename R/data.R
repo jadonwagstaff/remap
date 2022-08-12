@@ -18,7 +18,7 @@
 #'   \item{WESD}{Water equivalent of snow density in mm of water.}
 #'   \item{geometry}{sfc points in geographic coordinates.}
 #' }
-#' @source \url{ftp://ftp.ncdc.noaa.gov/pub/data/ghcn/daily}
+#' @source \url{https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/}
 "utsnow"
 
 
