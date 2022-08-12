@@ -1,6 +1,6 @@
 ## Test environments
-* local windows 10, R 4.0.5
-* local linux mint 19.1 MATE, R 3.6.2
+* local macOS 12.5, R 4.2.1
+* local Windows 10, R 4.2.1
 
 ## R CMD check results
 There were no ERRORs, NOTEs, or WARNINGs.

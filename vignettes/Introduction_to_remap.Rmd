@@ -251,7 +251,7 @@ The `remap` function takes a `model_function` as a parameter. The `model_functio
 
 Note that named function arguments can be supplied at the end of the remap function, as was the case with the `formula` argument in the linear model example shown previously. The key is that the first unnamed parameter be dedicated to data input. 
 
-Suppose we want to make a generalized additive model (GAM) that is limited to only making positive predictions. We also don't want to predict a number greater than the highest observed response in each region to avoid over extrapolation. This can be accomplished through wrapper functions for both `gam` and `predict.gam` that restrict predicted values to a specified range.
+Suppose we want to make a generalized additive model (GAM) that is limited to only making positive predictions. We also don't want to predict a number greater than the highest observed response in each region to avoid over extrapolation. This can be accomplished through wrapper functions for both `gam` and `predict.gam` that restrict predicted values to a specified range. We can also make the option to return standard errors rather than predictions. `remap` has an option to combine standard errors on region borders to find an upper bound of combined standard errors.
 
 ```{r gam}
 gam_limit <- function(data, fml) {
@@ -263,14 +263,18 @@ gam_limit <- function(data, fml) {
   return(out)
 }
 
-predict.gam_limit <- function(object, newobs) {
+predict.gam_limit <- function(object, newobs, se.fit = FALSE) {
   if (nrow(newobs) != 0) {
-    preds <- predict(object$g_model, newobs)
+    if (se.fit) {
+      return(predict(object$g_model, newobs, se.fit = TRUE)$se.fit)
+    } else {
+      preds <- predict(object$g_model, newobs)
     
-    preds[preds < 0] <- 0
-    preds[preds > object$upper_lim] <- object$upper_lim
-    
-    return(preds)
+      preds[preds < 0] <- 0
+      preds[preds > object$upper_lim] <- object$upper_lim
+      
+      return(preds)
+    }
   }
   return(NULL)
 }
@@ -346,7 +350,21 @@ gam_huc2_mse <- mean((utsnow$WESD - gam_huc2_preds)^2)
 gam_huc2_mse
 ```
 
-The HUC2 regionalized GAM has `r round((gam_global_mse - gam_huc2_mse) * 100 / gam_global_mse, 1)`% better MSE than the global GAM model.
+The HUC2 regionalized GAM has `r round((gam_global_mse - gam_huc2_mse) * 100 / gam_global_mse, 1)`% better MSE than the global GAM model. With the custom functions that we wrote, we can get both smooth predictions and smoothed combined standard errors.
+
+```{r gam_error}
+gam_huc2 <- remap::remap(
+    utsnow, utws, region_id = HUC2,
+    model_function = gam_limit, 
+    buffer = 20, min_n = 35,
+    distances = huc2_dist,
+    fml = gam_huc2_fml
+  )
+
+predict(gam_huc2, utsnow[1:3, ], smooth = 25)
+
+predict(gam_huc2, utsnow[1:3, ], smooth = 25, se = TRUE, se.fit = TRUE)
+```
 
 $~$
 

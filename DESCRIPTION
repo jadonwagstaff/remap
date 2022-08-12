@@ -1,7 +1,7 @@
 Package: remap
 Type: Package
 Title: Regional Spatial Modeling with Continuous Borders
-Version: 0.2.1.001
+Version: 0.3.0
 Authors@R: c(person("Jadon", "Wagstaff", email = "jadonw@gmail.com", role = c("aut", "cre")),
              person("Brennan", "Bean", email = "brennan.bean@usu.edu", role = "aut"))
 Description: Automatically creates separate regression models for different spatial 

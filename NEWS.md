@@ -1,9 +1,25 @@
-# remap 0.2.1.001
+# remap 0.3.0
+
+## Major changes
+
+* Added "se" option to the predict.remap function which allows a smooth 
+calculation of an upper bound of combined model standard errors when regional 
+model predict function returns standard errors rather than predictions. 
+(Backwards compatible.)
+
+## Minor changes
+
+* Simplified weighted average calculation. Calculated values are unaltered
+from previous version.
+
+* Updated example data source to remove ftp website.
 
 * Made updates to vignette and examples in documentation to accommodate
 the jump to sf version 1.0.0.
 
 # remap 0.2.1
+
+## Minor changes
 
 * remap now makes a model for a region using the min_n nearest observations
 regardless of whether or not there are observations within a region. This
