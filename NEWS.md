@@ -1,3 +1,7 @@
+## Minor changes
+
+* Updated citation to [R Journal article](https://doi.org/10.32614/RJ-2023-004).
+
 # remap 0.3.0
 
 ## Major changes

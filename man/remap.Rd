@@ -72,9 +72,9 @@ predict().
 If a model fails for a region, a warning is given but the modeling
 process will continue.
 
-A description of the methodology can be found in Wagstaff (2021)
-"Regionalized Models with Spatially Continuous Predictions at the Borders"
-<\url{https://digitalcommons.usu.edu/etd/8065/}>.
+A description of the methodology can be found in Wagstaff and Bean (2023)
+"remap: Regionalized Models with Spatially Smooth Predictions"
+<\url{https://doi.org/10.32614/RJ-2023-004}>.
 }
 \examples{
 library(remap)
