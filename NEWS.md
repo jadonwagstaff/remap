@@ -1,6 +1,10 @@
+# remap 0.3.1
+
 ## Minor changes
 
 * Updated citation to [R Journal article](https://doi.org/10.32614/RJ-2023-004).
+
+* Remove some suggested packages and simplified vignette.
 
 # remap 0.3.0
 
