@@ -1,7 +1,7 @@
 ---
 title: "Introduction to remap"
 author: "Jadon S. Wagstaff and Brennan Bean"
-date: "2020-01-03"
+date: "2023-06-06"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction to remap}
@@ -124,7 +124,7 @@ For this modeling task, any observation within 20km of a region is to be include
 ```{r lm_huc2, message=FALSE}
 t1 <- Sys.time()
 lm_huc2 <- remap::remap(
-  utsnz, utws, region_id = HUC2, 
+  utsnz, utws,
   buffer = 20, min_n = 10,
   model_function = lm, 
   formula = log(WESD) ~ ELEVATION
@@ -197,7 +197,7 @@ head(huc2_dist_nz)
 ```
 
 
-The newly created distance matrix can be sent to `remap` and `predict` as a parameter. Run the following code and notice how much faster the `remap` and `predict` functions run when the distances are pre-calculated.
+The newly created distance matrix can be sent to `remap` and `predict` as a parameter. Notice how much faster the `remap` and `predict` functions run when the distances are pre-calculated.
 
 ```{r lm_huc2_simp, message=FALSE}
 t1 <- Sys.time()
