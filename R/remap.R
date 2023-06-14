@@ -9,7 +9,7 @@
 #'
 #' A description of the methodology can be found in Wagstaff and Bean (2023)
 #' "remap: Regionalized Models with Spatially Smooth Predictions"
-#' <\url{https://doi.org/10.32614/RJ-2023-004}>.
+#' <doi:10.32614/RJ-2023-004>.
 #'
 #'
 #' @param data An sf data frame with point geometry.

@@ -1,7 +1,5 @@
-citHeader("To cite remap in publications use:")
-
-citEntry(
-  entry     = "Article",
+bibentry(
+  "Article",
   title     = "remap: Regionalized Models with Spatially Smooth Predictions",
   author    = "Jadon Wagstaff and Brennan Bean",
   year      = "2023",
