@@ -5,7 +5,7 @@
 \alias{utsnow}
 \title{Snowpack at weather stations in Utah on April 1st, 2011.}
 \format{
-An sf points object with 394 rows and 9 variables:
+An sf points object with 394 rows and 8 variables:
 \describe{
   \item{ID}{Weather station identification code.}
   \item{STATION_NAME}{Weather station name.}
@@ -30,5 +30,15 @@ location within and surrounding the state of Utah. WESD are
 measured at weather stations within the Daily Global Historical
 Climatology Network. April first measurements are used to
 estimate snowpack for the state of Utah.
+}
+\examples{
+\donttest{
+# If you run into issues with loading this dataset try running:
+utsnow <- sf::st_read(system.file("extdata/utsnow.shp", package="remap"))
+names(utsnow) <- c(
+  "ID", "STATION_NAME", "LATITUDE", "LONGITUDE", "ELEVATION", "HUC2",
+  "WESD", "geometry"
+)
+}
 }
 \keyword{datasets}

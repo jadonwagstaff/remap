@@ -34,9 +34,11 @@
 #'
 #' # Build a matrix of distances between objects of utsnow and utws
 #' # We will not set max_dist, so all distances will be found
-#' dists <- redist(data = utsnow,
-#'                 regions = utws,
-#'                 region_id = HUC2)
+#' dists <- redist(
+#'   data = utsnow,
+#'   regions = utws,
+#'   region_id = HUC2
+#' )
 #'
 #' head(dists)
 #'

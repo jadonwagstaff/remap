@@ -1,3 +1,9 @@
+# remap 0.3.2
+
+## Patches
+
+* Restructured package data to work with sf and pass CRAN checks.
+
 # remap 0.3.1
 
 ## Minor changes

@@ -5,7 +5,7 @@
 \alias{utws}
 \title{Watershed polygons within the state of Utah.}
 \format{
-An sf object with 394 rows and 2 variables:
+An sf object with 4 rows and 2 variables:
 \describe{
   \item{HUC2}{Largest watershed ID's defined by the USGS.}
   \item{geometry}{sfc multipolygon object in geographic coordinates.}
@@ -20,5 +20,11 @@ utws
 \description{
 Watersheds are defined by the United States Geological Survey.
 Only the largest defines watersheds are used.
+}
+\examples{
+\donttest{
+# If you run into issues with loading this dataset try running:
+utws <- sf::st_read(system.file("extdata/utws.shp", package="remap"))
+}
 }
 \keyword{datasets}

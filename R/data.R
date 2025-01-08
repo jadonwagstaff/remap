@@ -5,8 +5,9 @@
 #' measured at weather stations within the Daily Global Historical
 #' Climatology Network. April first measurements are used to
 #' estimate snowpack for the state of Utah.
-#'
-#' @format An sf points object with 394 rows and 9 variables:
+#' @name utsnow
+#' @docType data
+#' @format An sf points object with 394 rows and 8 variables:
 #' \describe{
 #'   \item{ID}{Weather station identification code.}
 #'   \item{STATION_NAME}{Weather station name.}
@@ -19,6 +20,15 @@
 #'   \item{geometry}{sfc points in geographic coordinates.}
 #' }
 #' @source \url{https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/}
+#' @examples
+#' \donttest{
+#' # If you run into issues with loading this dataset try running:
+#' utsnow <- sf::st_read(system.file("extdata/utsnow.shp", package="remap"))
+#' names(utsnow) <- c(
+#'   "ID", "STATION_NAME", "LATITUDE", "LONGITUDE", "ELEVATION", "HUC2",
+#'   "WESD", "geometry"
+#' )
+#' }
 "utsnow"
 
 
@@ -28,13 +38,21 @@
 #' Watersheds are defined by the United States Geological Survey.
 #' Only the largest defines watersheds are used.
 #'
-#' @format An sf object with 394 rows and 2 variables:
+#' @name utws
+#' @docType data
+#' @format An sf object with 4 rows and 2 variables:
 #' \describe{
 #'   \item{HUC2}{Largest watershed ID's defined by the USGS.}
 #'   \item{geometry}{sfc multipolygon object in geographic coordinates.}
 #' }
 #' @source \url{https://www.usgs.gov/national-hydrography/watershed-boundary-dataset}
+#' @examples
+#' \donttest{
+#' # If you run into issues with loading this dataset try running:
+#' utws <- sf::st_read(system.file("extdata/utws.shp", package="remap"))
+#' }
 "utws"
+
 
 
 

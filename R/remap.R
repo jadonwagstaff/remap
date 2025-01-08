@@ -64,14 +64,16 @@
 #' # Build a remap model with lm that has formula WESD ~ ELEVATION
 #' # The buffer to collect data around each region is 30km
 #' # The minimum number of observations per region is 10
-#' remap_model <- remap(data = utsnz,
-#'                      regions = utws,
-#'                      region_id = HUC2,
-#'                      model_function = lm,
-#'                      formula = log(WESD) ~ ELEVATION,
-#'                      buffer = 20,
-#'                      min_n = 10,
-#'                      progress = TRUE)
+#' remap_model <- remap(
+#'   data = utsnz,
+#'   regions = utws,
+#'   region_id = HUC2,
+#'   model_function = lm,
+#'   formula = log(WESD) ~ ELEVATION,
+#'   buffer = 20,
+#'   min_n = 10,
+#'   progress = TRUE
+#' )
 #'
 #' # Resubstitution predictions
 #' remap_preds <- exp(predict(remap_model, utsnz, smooth = 10))

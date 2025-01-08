@@ -1,7 +1,7 @@
 Package: remap
 Type: Package
 Title: Regional Spatial Modeling with Continuous Borders
-Version: 0.3.1
+Version: 0.3.2
 Authors@R: c(person("Jadon", "Wagstaff", email = "jadonw@gmail.com", role = c("aut", "cre")),
              person("Brennan", "Bean", email = "brennan.bean@usu.edu", role = "aut"))
 Description: Automatically creates separate regression models for different spatial 
@@ -22,7 +22,7 @@ Imports:
     stats (>= 4.1.0), 
     units (>= 0.6.7), 
     utils (>= 4.1.0)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Suggests: 
     dplyr (>= 1.0.2),
     ggplot2 (>= 3.3.2),
