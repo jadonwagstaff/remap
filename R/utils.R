@@ -74,8 +74,10 @@ process_regions <- function(regions, region_id) {
   if (length(id_list) < nrow(regions)) {
     new_geom <- list()
     for (id in id_list) {
-      new_geom[[id]] <- Reduce(sf::st_union,
-                               sf::st_geometry(regions[regions[[region_id]] == id,]))
+      new_geom[[id]] <- Reduce(
+        sf::st_union,
+        sf::st_geometry(regions[regions[[region_id]] == id,])
+      )
     }
     regions <- sf::st_sf(geom = sf::st_sfc(new_geom), crs = sf::st_crs(regions))
     regions[[region_id]] <- id_list

@@ -2,9 +2,9 @@
 % Please edit documentation in R/remap.R
 \name{predict.remap}
 \alias{predict.remap}
-\title{Make predictions given a set of data and smooths predictions at region borders.
-If an observation is outside of all regions and smoothing distances, the
-closest region will be used to predict.}
+\title{Make predictions given a set of data and smooths predictions at region
+borders. If an observation is outside of all regions and smoothing distances,
+the closest region will be used to predict.}
 \usage{
 \method{predict}{remap}(
   object,
@@ -50,9 +50,9 @@ Predictions in the form of a numeric vector. If se is TRUE,
 upper bound for combined standard errors in the form of a numeric vector.
 }
 \description{
-Make predictions given a set of data and smooths predictions at region borders.
-If an observation is outside of all regions and smoothing distances, the
-closest region will be used to predict.
+Make predictions given a set of data and smooths predictions at region
+borders. If an observation is outside of all regions and smoothing distances,
+the closest region will be used to predict.
 }
 \seealso{
 \code{\link{remap}} building a regional model.

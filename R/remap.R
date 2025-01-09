@@ -80,14 +80,27 @@
 #' head(remap_preds)
 #'
 #' @export
-remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
-                  distances, cores = 1, progress = FALSE,  ...) {
+remap <- function(
+    data,
+    regions,
+    region_id,
+    model_function,
+    buffer,
+    min_n = 1,
+    distances,
+    cores = 1,
+    progress = FALSE,
+    ...
+  ) {
+
   # Check input
   # ============================================================================
-  check_input(data = data,
-              cores = cores,
-              regions = regions,
-              distances = distances)
+  check_input(
+    data = data,
+    cores = cores,
+    regions = regions,
+    distances = distances
+  )
 
   # check if region_id is a character, if it is not, make it a character
   if (!missing(region_id) &&
@@ -107,11 +120,13 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
   # Find distances between the data and each region
   # ============================================================================
   if (missing(distances)) {
-    distances <- redist(data,
-                        regions = regions,
-                        region_id = region_id,
-                        cores = cores,
-                        progress = progress)
+    distances <- redist(
+      data,
+      regions = regions,
+      region_id = region_id,
+      cores = cores,
+      progress = progress
+    )
   }
 
   # Make function for building models
@@ -147,9 +162,11 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
 
     clusters <- parallel::makeCluster(cores)
 
-    parallel::clusterExport(clusters,
-                            c("model_function", "data", "distances", "buffer"),
-                            envir = environment())
+    parallel::clusterExport(
+      clusters,
+      c("model_function", "data", "distances", "buffer"),
+      envir = environment()
+    )
 
     models <- parallel::parLapply(
       cl = clusters,
@@ -207,9 +224,9 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
 
 #` \emph{remap} prediction function.
 #'
-#' Make predictions given a set of data and smooths predictions at region borders.
-#' If an observation is outside of all regions and smoothing distances, the
-#' closest region will be used to predict.
+#' Make predictions given a set of data and smooths predictions at region
+#' borders. If an observation is outside of all regions and smoothing distances,
+#' the closest region will be used to predict.
 #'
 #' @param object \emph{} S3 object output from remap.
 #' @param data An sf dataframe with point geometry.
@@ -237,8 +254,17 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
 #' @seealso \code{\link{remap}} building a regional model.
 #'
 #' @export
-predict.remap <- function(object, data, smooth, distances, cores = 1,
-                          progress = FALSE, se = FALSE, ...) {
+predict.remap <- function(
+    object,
+    data,
+    smooth,
+    distances,
+    cores = 1,
+    progress = FALSE,
+    se = FALSE,
+    ...
+  ) {
+
   # Check input
   # ============================================================================
   check_input(data = data, cores = cores, distances = distances)
@@ -250,21 +276,29 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
   # Find distances between the data and each region
   # ============================================================================
   if (missing(distances)) {
-    distances <- redist(data,
-                        regions = object$regions[],
-                        region_id = names(object$regions)[[1]],
-                        max_dist = smooth,
-                        cores = cores,
-                        progress = progress)
+    distances <- redist(
+      data,
+      regions = object$regions[],
+      region_id = names(object$regions)[[1]],
+      max_dist = smooth,
+      cores = cores,
+      progress = progress
+    )
   } else {
     # remove any extra columns in to prevent errors in the next step
     distances <- distances[, id_list]
   }
 
   # make sure all values have a distance with non-zero weight
-  distances[t(apply(distances, 1, function(x) {
-    x >= as.numeric(smooth) & x == min(x, na.rm = TRUE) & !is.na(x)
-  }))] <- 0
+  distances[
+    t(apply(
+      distances,
+      1,
+      function(x) {
+        x >= as.numeric(smooth) & x == min(x, na.rm = TRUE) & !is.na(x)
+      }
+    ))
+  ] <- 0
 
   # Do predictions in parallel if specified
   # ============================================================================
@@ -272,21 +306,25 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
   if (cores > 1) {
     clusters <- parallel::makeCluster(cores)
 
-    parallel::clusterExport(clusters,
-                            c(unlist(lapply(search(), function(x) {
-                              objects(x, pattern = "predict")
-                              })),
-                              "object", "data", "distances", "smooth",
-                              "parallel_hack"
-                            ),
-                            envir = environment())
+    parallel::clusterExport(
+      clusters,
+      c(
+        unlist(lapply(
+          search(),
+          function(x) {objects(x, pattern = "predict")}
+        )),
+        "object", "data", "distances", "smooth","parallel_hack"
+      ),
+      envir = environment()
+    )
 
     pred_list <- parallel::parLapply(
       clusters,
       as.list(id_list),
       function(id, ...) {
-        indices <- which(distances[, id] <= smooth[[id]] &
-                           !is.na(distances[, id]))
+        indices <- which(
+          distances[, id] <= smooth[[id]] & !is.na(distances[, id])
+        )
 
         # correct data to run in parallel
         newdata <- parallel_hack(data, sf::st_crs(data))[indices, ]
@@ -364,10 +402,12 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
   output[weightsum == 0] <- NA_real_
 
   if (progress) cat("\n")
-  if (se) cat("Upper bound for standard error calculated at each location.",
-              "\nReminder: make sure that the predict function outputs",
-              "a vector of standard error values for each regional model in",
-              "your remap object.\n")
+  if (se) cat(
+    "Upper bound for standard error calculated at each location.",
+    "\nReminder: make sure that the predict function outputs",
+    "a vector of standard error values for each regional model in",
+    "your remap object.\n"
+  )
 
   return(output)
 }
@@ -384,9 +424,11 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
 #'
 #' @export
 print.remap <- function(x, ...) {
-  cat(paste("remap model with",
-            length(x$models),
-            "regional models\n"))
+  cat(paste(
+    "remap model with",
+    length(x$models),
+    "regional models\n"
+  ))
 }
 
 

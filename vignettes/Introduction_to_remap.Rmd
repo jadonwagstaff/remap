@@ -1,7 +1,7 @@
 ---
 title: "Introduction to remap"
 author: "Jadon S. Wagstaff and Brennan Bean"
-date: "2023-06-06"
+date: "2025-01-09"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction to remap}
@@ -322,7 +322,8 @@ HUC2 regions are used to build a regionalized GAM models with `remap`. We will r
 gam_huc2_preds <- rep(as.numeric(NA), nrow(utsnow))
 
 # Formula for regional GAMs
-gam_huc2_fml <- WESD ~ s(ELEVATION, k = 5) + s(LATITUDE, LONGITUDE, bs = "sos", k = 25)
+gam_huc2_fml <- WESD ~ s(ELEVATION, k = 5) + 
+  s(LATITUDE, LONGITUDE, bs = "sos", k = 25)
 
 # Build and test models with 10 fold cross-validation
 for (i in 1:10) {

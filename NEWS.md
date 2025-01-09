@@ -2,6 +2,10 @@
 
 ## Patches
 
+* Reformatted spacing in code (no functional change).
+
+* Patched parallel computing functionality.
+
 * Update ggplot geom_line size parameter to linewidth.
 
 * Fixed gcc-UBSAN errors when finding distances for 0 points.
