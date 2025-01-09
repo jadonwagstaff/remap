@@ -456,7 +456,7 @@ ggplot(toy_regions) +
 ```{r sharp08, fig.width = 4, fig.height = 2.5, fig.align='center'}
 ggplot(grd_pred |> dplyr::filter(LAT == 0.8),
          aes(x = LON, y = SHARP)) +
-  geom_line(size = 1) +
+  geom_line(linewidth = 1) +
   ggtitle("Sharp Predictions at 0.8 degrees N") +
   theme_minimal()
 ```
@@ -475,7 +475,7 @@ ggplot(toy_regions) +
 ```{r smooth08, fig.width = 4, fig.height = 2.5, fig.align='center'}
 ggplot(grd_pred |> dplyr::filter(LAT == 0.8),
          aes(x = LON, y = SMOOTH)) +
-  geom_line(size = 1) +
+  geom_line(linewidth = 1) +
   ggtitle("Smooth Predictions at 0.8 degrees N") +
   theme_minimal()
 ```
