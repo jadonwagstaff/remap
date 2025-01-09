@@ -116,7 +116,7 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
 
   # Make function for building models
   # ============================================================================
-  make_model <- function(id) {
+  make_model <- function(id, ...) {
     # get indices for building model
     indices <- which(distances[, id] <= buffer[[id]])
     if (length(indices) < min_n) {
@@ -125,7 +125,7 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
 
     # correct data if running in parallel
     if (cores > 1) {
-      newdata <- parallel_hack(data[indices, ], sf::st_crs(data))
+      newdata <- parallel_hack(data, sf::st_crs(data))[indices, ]
     } else {
       newdata <- data[indices, ]
     }
@@ -148,13 +148,14 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
     clusters <- parallel::makeCluster(cores)
 
     parallel::clusterExport(clusters,
-                            "model_function",
+                            c("model_function", "data", "distances", "buffer"),
                             envir = environment())
 
     models <- parallel::parLapply(
       cl = clusters,
       X = as.list(id_list),
-      fun = make_model
+      fun = make_model,
+      ...
     )
 
     names(models) <- id_list
@@ -173,7 +174,7 @@ remap <- function(data, regions, region_id, model_function, buffer, min_n = 1,
     }
 
     for (id in id_list) {
-      models[[id]] <- make_model(id)
+      models[[id]] <- make_model(id, ...)
 
       # update progress bar
       if (progress) {
@@ -274,21 +275,25 @@ predict.remap <- function(object, data, smooth, distances, cores = 1,
     parallel::clusterExport(clusters,
                             c(unlist(lapply(search(), function(x) {
                               objects(x, pattern = "predict")
-                            }))),
+                              })),
+                              "object", "data", "distances", "smooth",
+                              "parallel_hack"
+                            ),
                             envir = environment())
 
     pred_list <- parallel::parLapply(
       clusters,
       as.list(id_list),
-      function(id) {
+      function(id, ...) {
         indices <- which(distances[, id] <= smooth[[id]] &
                            !is.na(distances[, id]))
 
         # correct data to run in parallel
-        newdata <- parallel_hack(data[indices, ], sf::st_crs(data))
+        newdata <- parallel_hack(data, sf::st_crs(data))[indices, ]
 
         stats::predict(object$models[[id]], newdata, ...)
-      }
+      },
+      ...
     )
 
     parallel::stopCluster(clusters)

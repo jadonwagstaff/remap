@@ -223,13 +223,13 @@ multi_core_dist <- function(points, polygons, index, cores, ...) {
   # set up parallel computing
   clusters <- parallel::makeCluster(cores)
 
-  parallel::clusterExport(cl = clusters,
-                          varlist = "distance_wrapper",
-                          envir = environment())
-
   # Compute distances by polygon with no index
   # ============================================================================
   if (missing(index)) {
+    parallel::clusterExport(cl = clusters,
+                            varlist = c("points", "polygons", "distance_wrapper"),
+                            envir = environment())
+
     d <- parallel::parLapply(
       cl = clusters,
       X = as.list(seq_along(polygons)),
@@ -238,12 +238,16 @@ multi_core_dist <- function(points, polygons, index, cores, ...) {
   # Compute distances by polygon with index
   # ============================================================================
   } else {
+    parallel::clusterExport(cl = clusters,
+                            varlist = c("points", "polygons", "index", "distance_wrapper"),
+                            envir = environment())
+
     d <- parallel::parLapply(
       cl = clusters,
       X = seq_along(polygons),
       fun = function(x) {
         col <- rep(NA_real_, nrow(points))
-        if (sum(index[, i]) > 0) {
+        if (sum(index[, x]) > 0) {
           col[index[, x]] <- distance_wrapper(points[index[, x], ], polygons[x])
         }
         return(col)
