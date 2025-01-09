@@ -124,10 +124,12 @@ redist <- function(data, regions, region_id, max_dist, cores = 1,
     # find all distances in places where all regions are out of buffer
     too_far <- apply(distances, 1, function(x) all(is.na(x)))
 
-    distances[too_far, ] <- dist_fun(points = data[too_far, ],
-                                     polygons = regions,
-                                     cores = cores,
-                                     progress = FALSE)
+    if (sum(too_far) > 0) {
+      distances[too_far, ] <- dist_fun(points = data[too_far, ],
+                                       polygons = regions,
+                                       cores = cores,
+                                       progress = FALSE)
+    }
 
   }
 
@@ -181,7 +183,9 @@ single_core_dist <- function(points, polygons, index, progress, ...) {
       if (missing(index)) {
         d[, i] <- distance_wrapper(points, polygons[i])
       } else {
-        d[index[, i], i] <- distance_wrapper(points[index[, i], ], polygons[i])
+        if (sum(index[, i]) > 0) {
+          d[index[, i], i] <- distance_wrapper(points[index[, i], ], polygons[i])
+        }
       }
 
       # update progress
@@ -239,7 +243,9 @@ multi_core_dist <- function(points, polygons, index, cores, ...) {
       X = seq_along(polygons),
       fun = function(x) {
         col <- rep(NA_real_, nrow(points))
-        col[index[, x]] <- distance_wrapper(points[index[, x], ], polygons[x])
+        if (sum(index[, i]) > 0) {
+          col[index[, x]] <- distance_wrapper(points[index[, x], ], polygons[x])
+        }
         return(col)
       }
     )

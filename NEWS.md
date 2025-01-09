@@ -2,7 +2,9 @@
 
 ## Patches
 
-* Restructured package data to work with sf and pass CRAN checks.
+* Fixed gcc-UBSAN errors when finding distances for 0 points.
+
+* Restructured package data to work with sf when sf isn't in search path.
 
 # remap 0.3.1
 
