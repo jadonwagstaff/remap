@@ -11,3 +11,4 @@ README.md
 ^support_docs$
 ^revdep$
 ^CRAN-SUBMISSION$
+^.github$
