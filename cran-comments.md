@@ -1,5 +1,5 @@
 ## Test environments
-* local macOS 15.2, R 4.4.2
+* local macOS 26.5.1, R 4.6.0
 * Rhub linux (R-devel)
 * Rhub clang-asan
 * Rhub ubuntu-gcc12

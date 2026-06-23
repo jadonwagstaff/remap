@@ -37,6 +37,9 @@ check_input <- function(data, cores, regions, distances) {
   if (!missing(distances) && nrow(data) != nrow(distances)) {
     stop("Rows in data must be same length as row in distances.")
   }
+  if (!missing(distances) && !inherits(distances, "units")) {
+    stop("Distances must be an object of class 'units'.")
+  }
 }
 
 

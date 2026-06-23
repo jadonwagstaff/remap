@@ -116,6 +116,9 @@ remap <- function(
   # check numbers
   buffer <- process_numbers(x = buffer, name = "buffer", id_list = id_list)
   if (min_n < 1) stop("'min_n' needs to be an integer >= 1.")
+  if (!missing(distances)) {
+    units(distances) <- units::as_units("km")
+  }
 
   # Find distances between the data and each region
   # ============================================================================
@@ -287,18 +290,20 @@ predict.remap <- function(
   } else {
     # remove any extra columns in to prevent errors in the next step
     distances <- distances[, id_list]
+    # make sure units for distances ar km
+    units(distances) <- units::as_units("km")
   }
 
   # make sure all values have a distance with non-zero weight
   distances[
     t(apply(
-      distances,
+      units::drop_units(distances),
       1,
       function(x) {
-        x >= as.numeric(smooth) & x == min(x, na.rm = TRUE) & !is.na(x)
+        x >= units::drop_units(smooth) & x == min(x, na.rm = TRUE) & !is.na(x)
       }
     ))
-  ] <- 0
+  ] <- units::as_units(0, "km")
 
   # Do predictions in parallel if specified
   # ============================================================================

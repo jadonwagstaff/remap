@@ -1,3 +1,10 @@
+# remap 0.3.3
+
+## Patches
+
+* Check for units of distance matrix passed to remap and predict functions and 
+convert to km if necessary.
+
 # remap 0.3.2
 
 ## Patches
