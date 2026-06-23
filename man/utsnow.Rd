@@ -19,7 +19,7 @@ An sf points object with 394 rows and 8 variables:
 }
 }
 \source{
-\url{https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/}
+\url{https://www.ncei.noaa.gov/pub/data/ghcn/daily/}
 }
 \usage{
 utsnow

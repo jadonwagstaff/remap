@@ -19,7 +19,7 @@
 #'   \item{WESD}{Water equivalent of snow density in mm of water.}
 #'   \item{geometry}{sfc points in geographic coordinates.}
 #' }
-#' @source \url{https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/}
+#' @source \url{https://www.ncei.noaa.gov/pub/data/ghcn/daily/}
 #' @examples
 #' \donttest{
 #' # If you run into issues with loading this dataset try running:
