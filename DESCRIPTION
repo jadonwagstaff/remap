@@ -22,14 +22,16 @@ Imports:
     stats (>= 4.1.0), 
     units (>= 0.6.7), 
     utils (>= 4.1.0)
-RoxygenNote: 7.3.3
 Suggests: 
     dplyr (>= 1.0.2),
     ggplot2 (>= 3.3.2),
     knitr (>= 1.30),
     maps (>= 3.3.0),
     mgcv (>= 1.8.33),
-    rmarkdown (>= 2.5)
+    rmarkdown (>= 2.5),
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Depends: 
     R (>= 4.1.0)
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.0

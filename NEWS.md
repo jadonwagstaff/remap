@@ -1,3 +1,7 @@
+## Minor changes
+
+* Added testing code, no source code changed as a result of testing.
+
 # remap 0.3.3
 
 ## Patches
